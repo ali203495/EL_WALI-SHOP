@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+backend/venv/
+venv/
+__pycache__/
+*.pyc
+
+# Nuxt
+.nuxt/
+.output/
+dist/
+stats.html
+
+# Environment Variables
+.env
+.env.*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Database (SQLite)
+*.db
+*.sqlite3
+backend/pos.db
+backend/migrations/versions/
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store

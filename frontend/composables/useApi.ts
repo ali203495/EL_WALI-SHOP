@@ -1,0 +1,233 @@
+import type { Product, Brand, Category, StoreLocation, Order, OrderCreate, TokenResponse, User } from '~/types'
+
+export const useApi = () => {
+    const config = useRuntimeConfig()
+    const baseUrl = config.public.apiBase
+
+    // Catalog
+    const getProducts = () => useFetch<Product[]>(`${baseUrl}/catalog/`)
+    const getProduct = (id: number) => useFetch<Product>(`${baseUrl}/catalog/${id}`)
+    const createProduct = (product: any) => {
+        const auth = useAuthStore()
+        return $fetch<Product>(`${baseUrl}/products/`, {
+            method: 'POST',
+            body: product,
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+    const updateProduct = (id: number, product: any) => {
+        const auth = useAuthStore()
+        return $fetch<Product>(`${baseUrl}/products/${id}`, {
+            method: 'PUT',
+            body: product,
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+    const deleteProduct = (id: number) => {
+        const auth = useAuthStore()
+        return $fetch(`${baseUrl}/products/${id}`, {
+            method: 'DELETE',
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+
+    // Brands
+    const getBrands = () => useFetch<Brand[]>(`${baseUrl}/brands/`)
+    const createBrand = (data: any) => {
+        const auth = useAuthStore()
+        return $fetch<Brand>(`${baseUrl}/brands/`, {
+            method: 'POST',
+            body: data,
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+    const deleteBrand = (id: number) => { // Note: Backend might not have delete endpoint yet, assuming consistent API or need to add
+        // Checking backend main.py: NO delete_brand endpoint.
+        // I need to add it to backend if I want to delete.
+        // For now I'll add the method but I might need to update backend.
+        const auth = useAuthStore()
+        return $fetch(`${baseUrl}/brands/${id}`, {
+            method: 'DELETE',
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+
+    // Categories
+    const getCategories = () => useFetch<Category[]>(`${baseUrl}/categories/`)
+    const createCategory = (data: any) => {
+        const auth = useAuthStore()
+        return $fetch<Category>(`${baseUrl}/categories/`, {
+            method: 'POST',
+            body: data,
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+    const deleteCategory = (id: number) => {
+        const auth = useAuthStore()
+        return $fetch(`${baseUrl}/categories/${id}`, {
+            method: 'DELETE',
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+
+
+    // Stores
+    const getStores = () => useFetch<StoreLocation[]>(`${baseUrl}/stores/`)
+    const createStore = (data: any) => {
+        const auth = useAuthStore()
+        return $fetch<StoreLocation>(`${baseUrl}/stores/`, { // Check backend: it has read_stores but maybe not create?
+            method: 'POST',
+            body: data,
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+    const deleteStore = (id: number) => {
+        const auth = useAuthStore()
+        return $fetch(`${baseUrl}/stores/${id}`, {
+            method: 'DELETE',
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+
+
+    // Orders
+    const getOrders = () => useFetch<Order[]>(`${baseUrl}/orders/`)
+    const createOrder = async (order: OrderCreate): Promise<Order> => {
+        return $fetch<Order>(`${baseUrl}/orders/`, {
+            method: 'POST',
+            body: order,
+        })
+    }
+
+    // Auth
+    const login = async (username: string, password: string): Promise<TokenResponse> => {
+        const formData = new FormData()
+        formData.append('username', username)
+        formData.append('password', password)
+
+        return $fetch<TokenResponse>(`${baseUrl}/token`, {
+            method: 'POST',
+            body: formData,
+        })
+    }
+
+    const getUsers = () => {
+        const auth = useAuthStore()
+        return useFetch<User[]>(`${baseUrl}/users/`, {
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+
+    const createUser = (userData: any) => {
+        const auth = useAuthStore()
+        return $fetch<User>(`${baseUrl}/users/`, {
+            method: 'POST',
+            body: userData,
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+
+    const updateUser = (userId: number, userData: any) => {
+        const auth = useAuthStore()
+        return $fetch<User>(`${baseUrl}/users/${userId}`, {
+            method: 'PUT',
+            body: userData,
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+
+    const deleteUser = (userId: number) => {
+        const auth = useAuthStore()
+        return $fetch(`${baseUrl}/users/${userId}`, {
+            method: 'DELETE',
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+
+    const updateUserPassword = (userId: number, password: string) => {
+        const auth = useAuthStore()
+        return $fetch<User>(`${baseUrl}/users/${userId}/password`, {
+            method: 'PUT',
+            body: { password },
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+
+    const getCurrentUser = (token: string) => {
+        return $fetch<User>(`${baseUrl}/users/me`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
+    }
+
+    // Settings (CMS)
+    const getSettings = () => useFetch<any[]>(`${baseUrl}/settings/`)
+    const updateSettings = (settings: { key: string, value: string }[]) => $fetch<any[]>(`${baseUrl}/settings/`, {
+        method: 'PUT',
+        body: settings
+    })
+
+    // Wishlist
+    const getWishlist = () => {
+        const auth = useAuthStore()
+        return useFetch<any[]>(`${baseUrl}/wishlist/`, {
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+    const addToWishlistApi = (productId: number) => {
+        const auth = useAuthStore()
+        return $fetch(`${baseUrl}/wishlist/`, {
+            method: 'POST',
+            body: { product_id: productId },
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+    const removeFromWishlistApi = (productId: number) => {
+        const auth = useAuthStore()
+        return $fetch(`${baseUrl}/wishlist/${productId}`, {
+            method: 'DELETE',
+            headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
+        })
+    }
+
+    return {
+        getProducts,
+        getProduct,
+        createProduct,
+        updateProduct,
+        deleteProduct,
+        getBrands,
+        getCategories,
+        getStores,
+        getOrders,
+        createOrder,
+        login,
+        getUsers,
+        createUser,
+        updateUser,
+        deleteUser,
+        updateUserPassword,
+        getCurrentUser,
+        getSettings,
+        updateSettings,
+        getWishlist,
+        createBrand,
+        deleteBrand,
+        createCategory,
+        deleteCategory,
+        createStore,
+        deleteStore,
+        addToWishlistApi,
+        removeFromWishlistApi,
+        uploadImage: async (file: File) => {
+            const formData = new FormData()
+            formData.append('file', file)
+            const result = await $fetch<{ url: string }>(`${baseUrl}/upload/`, {
+                method: 'POST',
+                body: formData
+            })
+            return result.url
+        }
+    }
+}

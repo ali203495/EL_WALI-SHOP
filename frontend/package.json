@@ -1,0 +1,22 @@
+{
+    "name": "pos-frontend",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "nuxt build",
+        "dev": "nuxt dev",
+        "generate": "nuxt generate",
+        "preview": "nuxt preview",
+        "postinstall": "nuxt prepare"
+    },
+    "dependencies": {
+        "gsap": "^3.12.5",
+        "nuxt": "latest",
+        "pinia": "^2.1.7",
+        "vue": "latest"
+    },
+    "devDependencies": {
+        "@pinia/nuxt": "^0.5.1",
+        "sass": "^1.71.1"
+    }
+}
