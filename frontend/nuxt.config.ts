@@ -47,6 +47,7 @@ export default defineNuxtConfig({
         port: 3000
     },
     nitro: {
+        preset: 'static',
         devProxy: {
             '/api': {
                 target: 'http://localhost:8000',

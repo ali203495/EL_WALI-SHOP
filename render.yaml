@@ -11,12 +11,11 @@ services:
         value: 3.11.0
 
   # Frontend Service (Static Site)
-  - type: web
+  - type: static_site
     name: maison-frontend
-    env: node
-    rootCommand: cd frontend
-    buildCommand: npm install && npm run build
-    startCommand: npm run start
+    env: static
+    buildCommand: cd frontend && npm install && npm run generate
+    staticPublishPath: frontend/.output/public
     envVars:
       - key: NODE_VERSION
         value: 18.x
@@ -24,4 +23,5 @@ services:
         fromService:
           type: web
           name: maison-api
-          envVar: url  # Render injects the backend URL here
+          envVar: RENDER_EXTERNAL_URL
+        sync: false
