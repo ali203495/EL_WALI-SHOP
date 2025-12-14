@@ -15,6 +15,7 @@ class User(Base):
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
+    is_super_admin = Column(Boolean, default=False)
     
     # Password Recovery
     reset_token = Column(String, nullable=True)

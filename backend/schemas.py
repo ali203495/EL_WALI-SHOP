@@ -22,6 +22,7 @@ class UserCreate(UserBase):
     last_name: str # Required
     phone_number: str # Required
     is_admin: bool = False
+    is_super_admin: bool = False
 
 class UserUpdate(BaseModel):
     username: str | None = None
@@ -30,17 +31,23 @@ class UserUpdate(BaseModel):
     last_name: str | None = None
     phone_number: str | None = None
     is_admin: bool | None = None
+    is_super_admin: bool | None = None
     is_active: bool | None = None
 
 class UserResponse(UserBase):
     id: int
     is_active: bool
     is_admin: bool
+    is_super_admin: bool = False
 
     class Config:
         from_attributes = True
 
 class UserPasswordUpdate(BaseModel):
+    password: str
+
+class UserLogin(BaseModel):
+    username: str
     password: str
 
 class PasswordResetRequest(BaseModel):

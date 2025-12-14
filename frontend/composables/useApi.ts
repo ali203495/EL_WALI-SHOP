@@ -168,6 +168,16 @@ export const useApi = () => {
         body: settings
     })
 
+    const verifyPassword = (password: string) => $fetch(`${baseUrl}/auth/verify-password`, {
+        method: 'POST',
+        body: { password }
+    })
+
+    const verifySuperCredentials = (credentials: any) => $fetch(`${baseUrl}/auth/verify-super-credentials`, {
+        method: 'POST',
+        body: credentials
+    })
+
     // Wishlist
     const getWishlist = () => {
         const auth = useAuthStore()

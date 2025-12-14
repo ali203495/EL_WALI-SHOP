@@ -15,7 +15,7 @@ import uuid
 from database import get_db, engine, Base
 from models import User, Brand, StoreLocation, Category, Product, Order, OrderItem, Wishlist, SiteSetting
 from schemas import (
-    UserCreate, UserResponse, Token, UserPasswordUpdate, UserUpdate,
+    UserCreate, UserResponse, Token, UserPasswordUpdate, UserUpdate, UserLogin,
     CategoryCreate, CategoryResponse,
     ProductCreate, ProductUpdate, ProductResponse,
     BrandCreate, BrandResponse, StoreLocationCreate, StoreLocationResponse, ProductResponseFull,
@@ -45,6 +45,10 @@ app.mount("/static", StaticFiles(directory=UPLOAD_DIR), name="static")
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://192.168.240.1:3000",
+    "http://192.168.240.1:3001",
+    "*", # Allow all for development testing across LAN
 ]
 
 app.add_middleware(
@@ -93,6 +97,40 @@ async def login_for_access_token(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+@app.post("/auth/verify-password")
+async def verify_user_password(
+    body: UserPasswordUpdate, 
+    current_user: User = Depends(get_current_active_user)
+):
+    if not verify_password(body.password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect password")
+    return {"message": "Password verified"}
+
+@app.post("/auth/verify-super-credentials")
+async def verify_super_credentials(
+    body: UserLogin,
+    db: AsyncSession = Depends(get_db)
+):
+    # Check if user exists
+    print(f"DEBUG LOGIN ATTEMPT: username='{body.username}'")
+    result = await db.execute(select(User).where(User.username == body.username))
+    user = result.scalars().first()
+    
+    if not user:
+        print("DEBUG FAILURE: User not found")
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+    
+    if not verify_password(body.password, user.hashed_password):
+        print("DEBUG FAILURE: Password verification failed")
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+        
+    if not user.is_super_admin:
+        print(f"DEBUG FAILURE: User {user.username} is not super admin")
+        raise HTTPException(status_code=403, detail="User is not a Super Admin")
+        
+    print("DEBUG SUCCESS: Verified!")
+    return {"message": "Verified", "is_super_admin": True}
+
 @app.post("/users/", response_model=UserResponse)
 async def create_user(
     user: UserCreate, 
@@ -100,7 +138,8 @@ async def create_user(
     current_user: User = Depends(get_current_active_user)
 ):
     # Only super admin can create users
-    if current_user.username != "Abdelaali":
+    # Only super admin can create users
+    if not current_user.is_super_admin:
         raise HTTPException(status_code=403, detail="Only the super admin can create users")
 
     result = await db.execute(select(User).where(User.username == user.username))
@@ -113,6 +152,7 @@ async def create_user(
         username=user.username, 
         hashed_password=hashed_pwd, 
         is_admin=user.is_admin,
+        is_super_admin=user.is_super_admin,
         email=user.email,
         first_name=user.first_name,
         last_name=user.last_name,
@@ -141,7 +181,7 @@ async def update_user(
     
     # Only super admin can edit users OR user editing themselves
     is_self = current_user.id == user_id
-    is_super = current_user.username == "Abdelaali"
+    is_super = current_user.is_super_admin
     
     if not is_super and not is_self:
         raise HTTPException(status_code=403, detail="Not authorized to edit this user")
@@ -172,7 +212,7 @@ async def read_users_me(current_user: Annotated[User, Depends(get_current_active
 
 @app.get("/users/", response_model=List[UserResponse])
 async def read_users(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user)):
-    if not current_user.is_admin:
+    if not current_user.is_super_admin:
         raise HTTPException(status_code=403, detail="Not authorized")
     result = await db.execute(select(User))
     return result.scalars().all()
@@ -184,7 +224,7 @@ async def update_user_password(
     db: AsyncSession = Depends(get_db), 
     current_user: User = Depends(get_current_active_user)
 ):
-    if current_user.username != "Abdelaali":
+    if not current_user.is_super_admin:
         raise HTTPException(status_code=403, detail="Only the super admin can set passwords")
     
     result = await db.execute(select(User).where(User.id == user_id))
@@ -205,7 +245,7 @@ async def delete_user(
     current_user: User = Depends(get_current_active_user)
 ):
     # Only super admin can delete users
-    if current_user.username != "Abdelaali":
+    if not current_user.is_super_admin:
         raise HTTPException(status_code=403, detail="Only the super admin can delete users")
     
     # Prevent self-deletion
