@@ -15,6 +15,7 @@ definePageMeta({
 
 const api = useApi()
 const toast = useToast()
+const route = useRoute()
 
 const step = ref(1) // 1: Email, 2: Code & New Password
 const email = ref('')
@@ -25,7 +26,12 @@ const isLoading = ref(false)
 const handleRequestCode = async () => {
     isLoading.value = true
     try {
-        await api.post('/auth/forgot-password', { email: email.value })
+        // Use $fetch directly since useApi doesn't expose generic post
+        const config = useRuntimeConfig()
+        await $fetch(`${config.public.apiBase}/auth/forgot-password`, {
+            method: 'POST',
+            body: { email: email.value }
+        })
         toast.success('Verification code sent if email exists')
         step.value = 2
         
@@ -45,10 +51,14 @@ const handleRequestCode = async () => {
 const handleResetPassword = async () => {
     isLoading.value = true
     try {
-        await api.post('/auth/reset-password', {
-            email: email.value,
-            code: code.value,
-            new_password: newPassword.value
+        const config = useRuntimeConfig()
+        await $fetch(`${config.public.apiBase}/auth/reset-password`, {
+             method: 'POST',
+             body: {
+                email: route.query.email,
+                code: code.value,
+                new_password: newPassword.value
+            }
         })
         toast.success('Password updated successfully')
         navigateTo('/login')

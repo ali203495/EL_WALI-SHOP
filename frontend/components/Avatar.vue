@@ -10,7 +10,7 @@ const initials = computed(() => {
     if (!props.name) return '?'
     const parts = props.name.split(' ')
     if (parts.length >= 2) {
-        return parts[0][0] + parts[1][0]
+        return (parts[0]?.[0] || '') + (parts[1]?.[0] || '')
     }
     return props.name.slice(0, 2)
 })

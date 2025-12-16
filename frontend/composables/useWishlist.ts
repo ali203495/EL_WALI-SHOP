@@ -1,7 +1,7 @@
 
 export const useWishlist = () => {
     const api = useApi()
-    const { $toast } = useNuxtApp()
+    const { $toast } = useNuxtApp() as any
 
     // State
     const items = useState<any[]>('wishlist_items', () => [])

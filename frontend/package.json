@@ -17,6 +17,7 @@
     },
     "devDependencies": {
         "@pinia/nuxt": "^0.5.1",
+        "@types/node": "^25.0.2",
         "sass": "^1.71.1"
     }
 }

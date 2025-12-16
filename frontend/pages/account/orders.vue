@@ -3,7 +3,7 @@ const api = useApi()
 
 definePageMeta({
     layout: 'account',
-    middleware: 'auth'
+    middleware: ['auth']
 })
 
 const { data: orders, pending } = await api.getOrders()

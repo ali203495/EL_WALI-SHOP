@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
     value: number
     max?: number
     showLabel?: boolean

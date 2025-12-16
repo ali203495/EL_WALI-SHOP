@@ -53,7 +53,7 @@ const handleLogin = async () => {
             gsap.to('.login-card', {
                 x: [-10, 10, -10, 10, 0],
                 duration: 0.4,
-            })
+            } as any)
         }
     } finally {
         isLoading.value = false

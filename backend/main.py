@@ -25,6 +25,8 @@ from schemas import (
     OrderCreate, OrderResponse
 )
 from auth import get_password_hash, verify_password, create_access_token, get_current_active_user, ACCESS_TOKEN_EXPIRE_MINUTES
+from facebook_capi import fb_capi
+import asyncio
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -523,6 +525,33 @@ async def create_order(
         .where(Order.id == order_id)
     )
     return result.scalars().first()
+
+    # --- Trigger Meta CAPI (Async) ---
+    try:
+        # Determine user data for matching
+        user_c_data = {}
+        if user:
+            user_c_data = {
+                "em": [user.email] if user.email else [],
+                "ph": [user.phone_number] if user.phone_number else [],
+                "fn": [user.first_name] if user.first_name else [],
+                "ln": [user.last_name] if user.last_name else [],
+            }
+        
+        event_data = {
+            "currency": "AED", 
+            "value": total_amount,
+            "order_id": str(order_id),
+            "content_ids": [str(i.product_id) for i in order.items],
+            "content_type": "product"
+        }
+        
+        # Fire and forget (schedule as background task)
+        # In a real production app, use BackgroundTasks or Celery
+        asyncio.create_task(fb_capi.send_event("Purchase", event_data, user_c_data))
+    except Exception as e:
+        print(f"Failed to trigger CAPI: {e}")
+
 
 # --- Brands ---
 

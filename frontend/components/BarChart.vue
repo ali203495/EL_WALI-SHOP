@@ -4,7 +4,7 @@ interface ChartData {
     value: number
 }
 
-defineProps<{
+const props = defineProps<{
     data: ChartData[]
     title?: string
     color?: string

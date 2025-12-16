@@ -41,9 +41,9 @@ const errors = reactive({
 })
 
 const validateForm = () => {
-    let isValid = true
+    let isValid = true;
     // Reset errors
-    (Object.keys(errors) as (keyof typeof errors)[]).forEach(key => {
+    (Object.keys(errors) as Array<keyof typeof errors>).forEach((key) => {
         errors[key] = ''
     })
 
@@ -62,7 +62,7 @@ const validateForm = () => {
 const handlePlaceOrder = async () => {
     if (!validateForm()) {
         // Shake form animation
-        gsap.to('.checkout-form', { x: [-10, 10, -10, 10, 0], duration: 0.4 })
+        gsap.to('.checkout-form', { x: [-10, 10, -10, 10, 0], duration: 0.4 } as any)
         return
     }
 

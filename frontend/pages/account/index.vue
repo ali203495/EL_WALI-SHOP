@@ -4,7 +4,7 @@ const api = useApi()
 
 definePageMeta({
     layout: 'account',
-    middleware: 'auth'
+    middleware: ['auth']
 })
 
 // Fetch recent orders

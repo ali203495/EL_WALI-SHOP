@@ -5,7 +5,7 @@ const toast = useToast()
 
 definePageMeta({
     layout: 'account',
-    middleware: 'auth'
+    middleware: ['auth']
 })
 
 const form = reactive({
