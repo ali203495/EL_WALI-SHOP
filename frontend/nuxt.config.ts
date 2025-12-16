@@ -52,7 +52,8 @@ export default defineNuxtConfig({
             '/api': {
                 target: 'http://localhost:8000',
                 changeOrigin: true,
-                prependPath: false
+                cookieDomainRewrite: "localhost",
+                rewrite: (path: string) => path.replace(/^\/api/, '')
             }
         }
     },

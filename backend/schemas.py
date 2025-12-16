@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 class Token(BaseModel):
@@ -40,8 +40,7 @@ class UserResponse(UserBase):
     is_admin: bool
     is_super_admin: bool = False
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserPasswordUpdate(BaseModel):
     password: str
@@ -69,8 +68,7 @@ class CategoryCreate(CategoryBase):
 
 class CategoryResponse(CategoryBase):
     id: int
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Products ---
 class ProductBase(BaseModel):
@@ -98,8 +96,7 @@ class ProductUpdate(BaseModel):
 class ProductResponse(ProductBase):
     id: int
     category: CategoryResponse | None = None
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Orders ---
 class OrderItemBase(BaseModel):
@@ -112,8 +109,7 @@ class OrderCreate(BaseModel):
 class OrderItemResponse(OrderItemBase):
     id: int
     price_at_time: float
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class OrderResponse(BaseModel):
     id: int
@@ -121,8 +117,7 @@ class OrderResponse(BaseModel):
     status: str
     created_at: datetime
     items: list[OrderItemResponse]
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Brands ---
 class BrandBase(BaseModel):
@@ -134,8 +129,7 @@ class BrandCreate(BrandBase):
 
 class BrandResponse(BrandBase):
     id: int
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Store Locations ---
 class StoreLocationBase(BaseModel):
@@ -151,8 +145,7 @@ class StoreLocationCreate(StoreLocationBase):
 
 class StoreLocationResponse(StoreLocationBase):
     id: int
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Enhanced Product (with Brand) ---
 class ProductResponseFull(BaseModel):
@@ -171,13 +164,11 @@ class ProductResponseFull(BaseModel):
     category: CategoryResponse | None = None
     brand: BrandResponse | None = None
     brand: BrandResponse | None = None
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class StartLocationResponse(StoreLocationBase):
     id: int
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Settings ---
 class SiteSettingBase(BaseModel):
@@ -188,8 +179,7 @@ class SiteSettingCreate(SiteSettingBase):
     pass
 
 class SiteSettingResponse(SiteSettingBase):
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- Wishlist ---
 from datetime import datetime
@@ -202,5 +192,4 @@ class WishlistResponse(BaseModel):
     product: ProductResponseFull
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

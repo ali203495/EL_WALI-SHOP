@@ -367,6 +367,7 @@ async def create_product(product: ProductCreate, db: AsyncSession = Depends(get_
     db_product = Product(**product.model_dump())
     db.add(db_product)
     await db.commit()
+    await db.refresh(db_product)
     
     # Re-fetch with eager loading for response
     # We must start a new query to avoid Greenlet issues with the committed instance
@@ -408,7 +409,7 @@ async def delete_product(product_id: int, db: AsyncSession = Depends(get_db), cu
         raise HTTPException(status_code=404, detail="Product not found")
     
     # Check if product is used in any orders
-    from .models import OrderItem
+    # from models import OrderItem # Already imported at top level
     result_usage = await db.execute(select(OrderItem).where(OrderItem.product_id == product_id).limit(1))
     if result_usage.scalars().first():
         raise HTTPException(
@@ -425,6 +426,18 @@ async def read_products(skip: int = 0, limit: int = 100, db: AsyncSession = Depe
     # Perform a join so we can access category data if needed
     result = await db.execute(select(Product).offset(skip).limit(limit))
     return result.scalars().all()
+
+@app.get("/products/{product_id}", response_model=ProductResponse)
+async def read_product(product_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(Product)
+        .options(selectinload(Product.category))
+        .where(Product.id == product_id)
+    )
+    product = result.scalars().first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
 
 @app.get("/orders/", response_model=List[OrderResponse])
 async def read_orders(
@@ -455,7 +468,7 @@ async def create_order(
     auth_header = request.headers.get('Authorization')
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
-        from .auth import verify_token_data
+        from auth import verify_token_data
         username = verify_token_data(token)
         if username:
              result = await db.execute(select(User).where(User.username == username))
@@ -522,13 +535,13 @@ async def read_brands(db: AsyncSession = Depends(get_db)):
 
 @app.get("/settings/", response_model=List[SiteSettingResponse])
 async def read_settings(db: AsyncSession = Depends(get_db)):
-    from .models import SiteSetting
+    # from models import SiteSetting # Already imported
     result = await db.execute(select(SiteSetting))
     return result.scalars().all()
 
 @app.put("/settings/", response_model=List[SiteSettingResponse])
 async def update_settings(settings: List[SiteSettingCreate], db: AsyncSession = Depends(get_db)):
-    from .models import SiteSetting
+    # from models import SiteSetting
     
     # Upsert logic
     for setting in settings:

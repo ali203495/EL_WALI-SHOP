@@ -1,13 +1,14 @@
-import type { Product, Brand, Category, StoreLocation, Order, OrderCreate, TokenResponse, User } from '~/types'
+import type { Product, Brand, Category, StoreLocation, Order, OrderCreate, TokenResponse, User, SiteSetting } from '~/types'
 
 export const useApi = () => {
     const config = useRuntimeConfig()
-    const baseUrl = config.public.apiBase
+    // Use direct backend URL on server to support prerendering, strictly use /api on client
+    const baseUrl = import.meta.server ? 'http://localhost:8000' : config.public.apiBase
 
     // Catalog
-    const getProducts = () => useFetch<Product[]>(`${baseUrl}/catalog/`)
-    const getProduct = (id: number) => useFetch<Product>(`${baseUrl}/catalog/${id}`)
-    const createProduct = (product: any) => {
+    const getProducts = () => useFetch<Product[]>(`${baseUrl}/products/`)
+    const getProduct = (id: number) => useFetch<Product>(`${baseUrl}/products/${id}`)
+    const createProduct = (product: Partial<Product>) => {
         const auth = useAuthStore()
         return $fetch<Product>(`${baseUrl}/products/`, {
             method: 'POST',
@@ -15,7 +16,7 @@ export const useApi = () => {
             headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
         })
     }
-    const updateProduct = (id: number, product: any) => {
+    const updateProduct = (id: number, product: Partial<Product>) => {
         const auth = useAuthStore()
         return $fetch<Product>(`${baseUrl}/products/${id}`, {
             method: 'PUT',
@@ -33,7 +34,7 @@ export const useApi = () => {
 
     // Brands
     const getBrands = () => useFetch<Brand[]>(`${baseUrl}/brands/`)
-    const createBrand = (data: any) => {
+    const createBrand = (data: Partial<Brand>) => {
         const auth = useAuthStore()
         return $fetch<Brand>(`${baseUrl}/brands/`, {
             method: 'POST',
@@ -41,10 +42,7 @@ export const useApi = () => {
             headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
         })
     }
-    const deleteBrand = (id: number) => { // Note: Backend might not have delete endpoint yet, assuming consistent API or need to add
-        // Checking backend main.py: NO delete_brand endpoint.
-        // I need to add it to backend if I want to delete.
-        // For now I'll add the method but I might need to update backend.
+    const deleteBrand = (id: number) => {
         const auth = useAuthStore()
         return $fetch(`${baseUrl}/brands/${id}`, {
             method: 'DELETE',
@@ -53,8 +51,13 @@ export const useApi = () => {
     }
 
     // Categories
-    const getCategories = () => useFetch<Category[]>(`${baseUrl}/categories/`)
-    const createCategory = (data: any) => {
+    const getCategories = () => useFetch<Category[]>(`${baseUrl}/categories/`, {
+        onResponseError({ response }) {
+            console.warn('Failed to fetch categories:', response.statusText)
+        }
+    })
+
+    const createCategory = (data: Partial<Category>) => {
         const auth = useAuthStore()
         return $fetch<Category>(`${baseUrl}/categories/`, {
             method: 'POST',
@@ -162,7 +165,12 @@ export const useApi = () => {
     }
 
     // Settings (CMS)
-    const getSettings = () => useFetch<any[]>(`${baseUrl}/settings/`)
+    const getSettings = () => useFetch<any[]>(`${baseUrl}/settings/`, {
+        onResponseError({ response }) {
+            // Suppress errors during build/prerender to prevent build failure
+            console.warn('Failed to fetch settings:', response.statusText)
+        }
+    })
     const updateSettings = (settings: { key: string, value: string }[]) => $fetch<any[]>(`${baseUrl}/settings/`, {
         method: 'PUT',
         body: settings

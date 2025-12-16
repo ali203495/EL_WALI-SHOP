@@ -13,7 +13,7 @@ from backend.auth import get_password_hash
 async def create_super_admin():
     async with SessionLocal() as session:
         username = "abdelaali"
-        password = "acbd1234!@#$"
+        password = "abcd1234!@#$"
         
         print(f"Checking for user: {username}")
         result = await session.execute(select(User).where(User.username == username))

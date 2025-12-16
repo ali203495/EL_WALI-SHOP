@@ -30,7 +30,7 @@ export const useWishlist = () => {
             items.value.push(res)
             $toast.success('Added to wishlist')
         } catch (e: any) {
-            // $toast.error(e.response?._data?.detail || 'Failed to add to wishlist')
+            $toast.error(e.response?._data?.detail || 'Failed to add to wishlist')
             console.error(e)
         } finally {
             isLoading.value = false
@@ -44,7 +44,7 @@ export const useWishlist = () => {
             items.value = items.value.filter(i => i.product.id !== productId)
             $toast.info('Removed from wishlist')
         } catch (e) {
-            // $toast.error('Failed to remove from wishlist')
+            $toast.error('Failed to remove from wishlist')
             console.error(e)
         } finally {
             isLoading.value = false

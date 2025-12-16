@@ -1,14 +1,12 @@
-// Product Types
+export interface Category {
+    id: number
+    name: string
+}
+
 export interface Brand {
     id: number
     name: string
     logo_url?: string
-}
-
-export interface Category {
-    id: number
-    name: string
-    image_url?: string
 }
 
 export interface Product {
@@ -17,29 +15,29 @@ export interface Product {
     description?: string
     price: number
     stock: number
-    image_url?: string
-    additional_images?: string[]
-    specs?: Record<string, string>
-    rating?: number
-    review_count?: number
-    category_id?: number
+    category_id: number
     brand_id?: number
+    image_url?: string
     category?: Category
     brand?: Brand
+    additional_images?: string[]
+    specs?: Record<string, any>
+    rating?: number
+    review_count?: number
 }
 
-// Store Types
-export interface StoreLocation {
+export interface User {
     id: number
-    name: string
-    address: string
-    city: string
-    latitude: number
-    longitude: number
-    phone: string
+    username: string
+    email?: string
+    first_name?: string
+    last_name?: string
+    phone_number?: string
+    is_active: boolean
+    is_admin: boolean
+    is_super_admin: boolean
 }
 
-// Order Types
 export interface OrderItem {
     id: number
     product_id: number
@@ -51,26 +49,13 @@ export interface Order {
     id: number
     total_amount: number
     status: string
-    items: OrderItem[]
     created_at: string
-}
-
-export interface OrderCreateItem {
-    product_id: number
-    quantity: number
+    items: OrderItem[]
+    user_id?: number
 }
 
 export interface OrderCreate {
-    items: OrderCreateItem[]
-}
-
-// Auth Types
-export interface User {
-    id: number
-    username: string
-    is_active: boolean
-    is_admin: boolean
-    is_super_admin: boolean
+    items: { product_id: number; quantity: number }[]
 }
 
 export interface TokenResponse {
@@ -78,7 +63,17 @@ export interface TokenResponse {
     token_type: string
 }
 
-// API Response wrapper
-export interface ApiError {
-    detail: string
+export interface SiteSetting {
+    key: string
+    value: string
+}
+
+export interface StoreLocation {
+    id: number
+    name: string
+    address: string
+    city: string
+    latitude?: number
+    longitude?: number
+    phone?: string
 }
