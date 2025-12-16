@@ -128,7 +128,7 @@ onMounted(() => {
                                 :key="index"
                                 class="thumb-btn"
                                 :class="{ active: selectedImage === img }"
-                                @click="selectImage(img)"
+                                @click="img && selectImage(img)"
                             >
                                 <img :src="img" :alt="`${currentProduct.name} view ${index + 1}`">
                             </button>

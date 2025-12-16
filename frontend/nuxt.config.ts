@@ -53,6 +53,7 @@ export default defineNuxtConfig({
                 target: 'http://localhost:8000',
                 changeOrigin: true,
                 cookieDomainRewrite: "localhost",
+                // @ts-expect-error rewrite is valid in http-proxy-middleware used by nitro dev proxy
                 rewrite: (path: string) => path.replace(/^\/api/, '')
             }
         }

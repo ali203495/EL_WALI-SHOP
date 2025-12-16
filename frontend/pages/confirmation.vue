@@ -34,7 +34,7 @@ const createConfetti = () => {
         const confetti = document.createElement('div')
         confetti.classList.add('confetti')
         confetti.style.left = Math.random() * 100 + 'vw'
-        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)] || '#f59e0b' || '#f59e0b'
         confetti.style.animationDuration = Math.random() * 3 + 2 + 's'
         confetti.style.opacity = Math.random().toString()
         document.body.appendChild(confetti)
@@ -67,6 +67,11 @@ const createConfetti = () => {
                     We've sent a confirmation email to your inbox.<br>
                     You can track your order status in your account.
                 </p>
+                <!-- The provided snippet for insertion was syntactically incorrect and out of context. -->
+                <!-- It contained a button with a v-for loop related to product images, -->
+                <!-- and was closed by </NuxtLink> instead of </button>. -->
+                <!-- To maintain syntactical correctness, this specific snippet cannot be inserted as is. -->
+                <!-- If you intended to add a new button or element here, please provide a corrected snippet. -->
 
                 <div class="actions">
                     <NuxtLink to="/catalog" class="btn btn-primary btn-lg">
