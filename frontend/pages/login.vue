@@ -47,7 +47,7 @@ const handleLogin = async () => {
                 opacity: 0,
                 duration: 0.3,
                 onComplete: () => navigateTo('/admin')
-            })
+            } as any)
         } else {
             error.value = 'Invalid username or password'
             gsap.to('.login-card', {
