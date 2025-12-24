@@ -8,7 +8,7 @@ def verify_wishlist_backend():
 
     # 1. Login as Admin to get token
     print("1. Logging in...")
-    resp = requests.post(f"{BASE_URL}/token", data={"username": "abdelaali", "password": "acbd1234!@#$"})
+    resp = requests.post(f"{BASE_URL}/token", data={"username": "abdelaali", "password": "abcd1234!@#$"})
     if resp.status_code != 200:
         print(f"❌ Login failed: {resp.text}")
         return

@@ -20,6 +20,8 @@ const handleSearch = () => {
         searchQuery.value = ''
     }
 }
+
+const { settings } = useSiteSettings();
 </script>
 
 <template>
@@ -28,7 +30,8 @@ const handleSearch = () => {
     <header class="navbar">
       <div class="container nav-content">
         <NuxtLink to="/" class="logo">
-          MAISON <span class="highlight">EL WALI</span>
+          <span v-if="settings.store_name">{{ settings.store_name }}</span>
+          <span v-else>MAISON <span class="highlight">EL WALI</span></span>
         </NuxtLink>
         
         <nav class="nav-links desktop-only">
@@ -105,12 +108,12 @@ const handleSearch = () => {
         <div class="footer-grid">
           <!-- Brand -->
           <div class="footer-brand">
-            <h3>MAISON <span class="highlight">EL WALI</span></h3>
+            <h3><span v-if="settings.store_name">{{ settings.store_name }}</span><span v-else>MAISON <span class="highlight">EL WALI</span></span></h3>
             <p>Luxury Gold & Jewelry</p>
             <p class="tagline">Timeless Elegance from Dubai</p>
             <div class="social-links">
+              <a v-if="settings.contact_email" :href="'mailto:' + settings.contact_email" title="Email">✉️</a>
               <a href="#" title="Instagram">📷</a>
-              <a href="#" title="Pinterest">📌</a>
               <a href="#" title="Facebook">f</a>
             </div>
           </div>
@@ -151,7 +154,7 @@ const handleSearch = () => {
         </div>
         
         <div class="footer-bottom">
-            <p class="address">12 Royal Palm Avenue, Dubai, UAE</p>
+            <p class="address">{{ settings.contact_address }}</p>
           <p class="copyright">© 2025 Maison El Wali. All Rights Reserved.</p>
         </div>
       </div>

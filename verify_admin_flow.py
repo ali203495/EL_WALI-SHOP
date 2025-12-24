@@ -3,7 +3,7 @@ import sqlite3
 import time
 
 BASE_URL = "http://localhost:8000"
-DB_PATH = "/home/xyz/Documents/xxx/pos.db"
+DB_PATH = "/home/xyz/Documents/xxx/backend/pos.db"
 
 def get_db_token(email):
     conn = sqlite3.connect(DB_PATH)
@@ -18,7 +18,7 @@ def test_admin_flow():
     
     # 1. Login
     print("1. Logging in as Super Admin...")
-    resp = requests.post(f"{BASE_URL}/token", data={"username": "abdelaali", "password": "acbd1234!@#$"})
+    resp = requests.post(f"{BASE_URL}/token", data={"username": "abdelaali", "password": "abcd1234!@#$"})
     if resp.status_code != 200:
         print(f"❌ Login failed: {resp.text}")
         return

@@ -8,6 +8,8 @@ useHead({
     ]
 })
 
+const { settings } = useSiteSettings()
+
 onMounted(() => {
     const tl = gsap.timeline()
     
@@ -39,9 +41,9 @@ onMounted(() => {
             </div>
             
             <div class="container hero-content">
-                <span class="eyebrow">Maison El Wali</span>
-                <h1>Timeless <span class="text-gradient">Elegance</span></h1>
-                <p class="subtitle">Curated collections of the finest gold and diamond jewelry for the modern connoisseur.</p>
+                <span class="eyebrow">{{ settings.hero_badge }}</span>
+                <h1>{{ settings.hero_title }}</h1>
+                <p class="subtitle">{{ settings.hero_subtitle }}</p>
                 
                 <div class="hero-actions">
                     <NuxtLink to="/catalog" class="btn btn-primary btn-lg">Explore Collection</NuxtLink>

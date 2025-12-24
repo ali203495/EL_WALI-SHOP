@@ -6,8 +6,17 @@ export default defineNuxtConfig({
     },
     devtools: { enabled: true },
     modules: [
-        '@pinia/nuxt'
+        '@pinia/nuxt',
+        '@nuxtjs/sitemap',
+        '@nuxtjs/robots'
     ],
+    site: {
+        url: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+        name: 'Maison El Wali'
+    },
+    sitemap: {
+        sources: ['/api/sitemap']
+    },
     css: [
         '~/assets/css/main.css'
     ],

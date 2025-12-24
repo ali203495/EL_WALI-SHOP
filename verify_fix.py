@@ -5,8 +5,8 @@ import json
 import uuid
 
 BASE_URL = "http://localhost:8000"
-USERNAME = "Abdelaali"
-PASSWORD = "abcd1234!@#$%"
+USERNAME = "abdelaali"
+PASSWORD = "abcd1234!@#$"
 
 def login():
     data = urllib.parse.urlencode({

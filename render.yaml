@@ -1,21 +1,34 @@
 services:
-  # Backend Service
+  # ------------------------------------
+  # 1. Backend Service (Python/FastAPI)
+  # ------------------------------------
   - type: web
     name: maison-api
+    plan: free # or starter
     env: python
-    rootCommand: cd backend
+    rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: ./start.sh
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: 3.11.9
+      - key: FACEBOOK_PAGE_ID
+        sync: false
+      - key: FACEBOOK_ACCESS_TOKEN
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
 
-  # Frontend Service (Static Site)
-  - type: static_site
+  # ------------------------------------
+  # 2. Frontend Service (Nuxt Static)
+  # ------------------------------------
+  - type: web
     name: maison-frontend
-    env: static
-    buildCommand: cd frontend && npm install && npm run generate
-    staticPublishPath: frontend/.output/public
+    plan: free # or starter
+    env: node
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: node .output/server/index.mjs
     envVars:
       - key: NODE_VERSION
         value: 18.x
@@ -24,4 +37,3 @@ services:
           type: web
           name: maison-api
           envVar: RENDER_EXTERNAL_URL
-        sync: false

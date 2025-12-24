@@ -29,6 +29,33 @@ onMounted(() => {
         duration: 0.4
     })
 })
+
+const exportCSV = () => {
+    if (!orders.value || orders.value.length === 0) return
+    
+    // Headers
+    const headers = ['Order ID', 'Date', 'Customer', 'Email', 'Total', 'Status', 'Payment']
+    
+    // Rows
+    const rows = orders.value.map(o => [
+        o.id,
+        new Date(o.created_at).toLocaleDateString(),
+        `"${o.customer_name || 'Guest'}"`,
+        o.customer_email || '-',
+        o.total_amount,
+        o.status,
+        o.payment_status || '-'
+    ].join(','))
+    
+    const csvContent = [headers.join(','), ...rows].join('\n')
+    
+    // Download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `orders_${new Date().toISOString().slice(0,10)}.csv`
+    link.click()
+}
 </script>
 
 <template>
@@ -37,6 +64,9 @@ onMounted(() => {
                 <div>
                     <h1>الطلبات</h1>
                     <p class="subtitle">عرض سجل الطلبات والمعاملات</p>
+                </div>
+                <div class="flex gap-2">
+                    <button @click="exportCSV" class="btn btn-outline" title="Export to CSV">📥 Export CSV</button>
                 </div>
             </header>
 

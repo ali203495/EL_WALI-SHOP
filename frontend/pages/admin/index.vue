@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
 import gsap from 'gsap'
+import AdminSalesChart from '~/components/admin/SalesChart.vue'
 
 definePageMeta({
     layout: 'admin'
@@ -14,13 +15,31 @@ const [
     { data: products },
     { data: brands },
     { data: stores },
-    { data: categories }
+    { data: categories },
+    { data: orders }
 ] = await Promise.all([
     api.getProducts(),
     api.getBrands(),
     api.getStores(),
-    api.getCategories()
+    api.getCategories(),
+    api.getOrders()
 ])
+
+const productsData = products
+const brandsData = brands
+const storesData = stores
+const categoriesData = categories
+const ordersData = orders
+
+// Calculate Total Revenue
+const totalRevenue = computed(() => {
+    return ordersData.value?.reduce((acc: number, order: any) => acc + (order.total_amount || 0), 0) || 0
+})
+
+// Low Stock Items
+const lowStockProducts = computed(() => {
+    return productsData.value?.filter(p => p.stock <= 5) || []
+})
 
 const stats = computed(() => [
     { label: 'Products', value: products.value?.length || 0, icon: '📦', color: '#4f46e5' },
@@ -60,13 +79,40 @@ onMounted(() => {
             
             <!-- Stats Grid -->
             <div class="stats-grid">
+                <div class="stat-card" style="--accent: #4f46e5">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <span class="stat-value">{{ totalRevenue.toLocaleString() }} د.إ</span>
+                        <span class="stat-label">Total Revenue</span>
+                    </div>
+                </div>
                 <div v-for="stat in stats" :key="stat.label" class="stat-card" :style="{ '--accent': stat.color }">
                     <div class="stat-icon">{{ stat.icon }}</div>
                     <div class="stat-info">
                         <span class="stat-value">{{ stat.value }}</span>
-                        <span class="stat-label">{{ stat.label === 'Products' ? 'المنتجات' : stat.label === 'Brands' ? 'العلامات التجارية' : stat.label === 'Categories' ? 'التصنيفات' : 'المتاجر' }}</span>
+                        <span class="stat-label">{{ stat.label === 'Products' ? 'المنتجات' : stat.label === 'Brands' ? 'brands' : stat.label === 'Categories' ? 'Categories' : 'Stores' }}</span>
                     </div>
                 </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Sales Chart -->
+                <section class="section chart-section">
+                    <h3>Weekly Sales</h3>
+                    <AdminSalesChart :orders="ordersData || []" />
+                </section>
+
+                <!-- Low Stock Alert -->
+                <section class="section alert-section">
+                    <h3>Low Stock Alerts ({{ lowStockProducts.length }})</h3>
+                    <div v-if="lowStockProducts.length > 0" class="alert-list">
+                        <div v-for="p in lowStockProducts.slice(0, 5)" :key="p.id" class="alert-item">
+                            <span>{{ p.name }}</span>
+                            <span class="badge badge-warning">{{ p.stock }} left</span>
+                        </div>
+                    </div>
+                    <div v-else class="text-muted">All stocks are healthy! ✅</div>
+                </section>
             </div>
             
             <!-- Recent Products -->
@@ -133,7 +179,21 @@ onMounted(() => {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.alert-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
 }
 
 .stat-card {

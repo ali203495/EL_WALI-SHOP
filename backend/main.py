@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 from typing import Annotated, List
 from datetime import timedelta
 import contextlib
@@ -61,23 +61,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from services.storage import StorageService
+
 @app.post("/upload/")
-async def upload_image(file: UploadFile = File(...)):
-    # Generate unique filename
-    file_extension = os.path.splitext(file.filename)[1]
-    unique_filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = os.path.join(UPLOAD_DIR, unique_filename)
-    
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-        
-    # Return URL (assuming served via /static)
-    # Using absolute URL helps frontend preview immediately if needed, 
-    # but relative path is more portable. 
-    # Given proxy setup: /api/static/... -> backend/uploads/...
-    # But wait, app.mount("/static") means url is /static/...
-    # Frontend via proxy /api -> backend. So /api/static/...
-    return {"url": f"http://localhost:8000/static/{unique_filename}"}
+async def upload_image(request: Request, file: UploadFile = File(...)):
+    url = await StorageService.upload_file(file, str(request.base_url))
+    return {"url": url}
 
 @app.post("/token", response_model=Token)
 async def login_for_access_token(
@@ -364,6 +353,8 @@ async def delete_category(category_id: int, db: AsyncSession = Depends(get_db), 
 
 # --- Products ---
 
+from services.facebook_post import facebook_service
+
 @app.post("/products/", response_model=ProductResponse)
 async def create_product(product: ProductCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user)):
     db_product = Product(**product.model_dump())
@@ -379,6 +370,10 @@ async def create_product(product: ProductCreate, db: AsyncSession = Depends(get_
         .where(Product.id == db_product.id)
     )
     fetched_product = result.scalars().first()
+    
+    # Trigger Facebook Auto-Post (Async)
+    asyncio.create_task(facebook_service.post_product(fetched_product))
+    
     return fetched_product
 
 @app.put("/products/{product_id}", response_model=ProductResponse)
@@ -665,7 +660,10 @@ async def read_wishlist(db: AsyncSession = Depends(get_db), current_user: User =
     result = await db.execute(
         select(Wishlist)
         .where(Wishlist.user_id == current_user.id)
-        .options(selectinload(Wishlist.product))
+        .options(
+            joinedload(Wishlist.product).joinedload(Product.category),
+            joinedload(Wishlist.product).joinedload(Product.brand)
+        )
     )
     return result.scalars().all()
 
@@ -692,7 +690,10 @@ async def add_to_wishlist(
     result = await db.execute(
         select(Wishlist)
         .where(Wishlist.id == db_wishlist.id)
-        .options(selectinload(Wishlist.product))
+        .options(
+            joinedload(Wishlist.product).joinedload(Product.category),
+            joinedload(Wishlist.product).joinedload(Product.brand)
+        )
     )
     return result.scalars().first()
 

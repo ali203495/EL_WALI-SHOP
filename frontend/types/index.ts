@@ -52,6 +52,12 @@ export interface Order {
     created_at: string
     items: OrderItem[]
     user_id?: number
+    customer_name?: string
+    customer_email?: string
+    customer_phone?: string
+    shipping_address?: string
+    billing_address?: string
+    payment_status?: string
 }
 
 export interface OrderCreate {
