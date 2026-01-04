@@ -80,7 +80,18 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     total_amount = Column(Float, default=0.0)
     created_at = Column(DateTime, default=datetime.utcnow)
-    status = Column(String, default="completed") # completed, refunded
+    status = Column(String, default="pending") # pending, completed, cancelled
+    payment_method = Column(String, default="cod")
+    
+    # Customer Details (Snapshot)
+    customer_email = Column(String, nullable=True)
+    customer_first_name = Column(String, nullable=True)
+    customer_last_name = Column(String, nullable=True)
+    customer_address = Column(String, nullable=True)
+    customer_city = Column(String, nullable=True)
+    customer_country = Column(String, nullable=True)
+    customer_zip = Column(String, nullable=True)
+
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True) # Check if user is logged in
 
     items = relationship("OrderItem", back_populates="order")

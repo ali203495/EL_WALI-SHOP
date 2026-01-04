@@ -105,6 +105,14 @@ class OrderItemBase(BaseModel):
 
 class OrderCreate(BaseModel):
     items: list[OrderItemBase]
+    # Customer Details
+    email: str
+    firstName: str
+    lastName: str
+    address: str
+    city: str
+    country: str
+    zip: str
 
 class OrderItemResponse(OrderItemBase):
     id: int
@@ -115,7 +123,17 @@ class OrderResponse(BaseModel):
     id: int
     total_amount: float
     status: str
+    payment_method: str | None = None
     created_at: datetime
+    items: list[OrderItemResponse]
+    # Customer Details
+    customer_email: str | None = None
+    customer_first_name: str | None = None
+    customer_last_name: str | None = None
+    customer_address: str | None = None
+    customer_city: str | None = None
+    customer_country: str | None = None
+    customer_zip: str | None = None
     items: list[OrderItemResponse]
     model_config = ConfigDict(from_attributes=True)
 

@@ -474,8 +474,22 @@ async def create_order(
                  user_id = user.id
 
     # 1. Validate products and calculate total
+    # 1. Validate products and calculate total
     total_amount = 0.0
-    db_order = Order(status="completed", user_id=user_id)
+    
+    # Create order with customer details
+    db_order = Order(
+        status="pending", # Default to pending for COD
+        user_id=user_id,
+        payment_method="cod",
+        customer_email=order.email,
+        customer_first_name=order.firstName,
+        customer_last_name=order.lastName,
+        customer_address=order.address,
+        customer_city=order.city,
+        customer_country=order.country,
+        customer_zip=order.zip
+    )
     db.add(db_order)
     await db.flush() # get ID
 

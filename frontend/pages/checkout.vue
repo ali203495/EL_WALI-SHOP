@@ -22,11 +22,7 @@ const form = reactive({
     address: '',
     city: '',
     country: 'US',
-    zip: '',
-    cardName: '',
-    cardNumber: '',
-    expDate: '',
-    cvc: ''
+    zip: ''
 })
 
 const errors = reactive({
@@ -35,9 +31,7 @@ const errors = reactive({
     lastName: '',
     address: '',
     city: '',
-    zip: '',
-    cardNumber: '',
-    cvc: ''
+    zip: ''
 })
 
 const validateForm = () => {
@@ -53,8 +47,6 @@ const validateForm = () => {
     if (!form.address) { errors.address = 'Required'; isValid = false }
     if (!form.city) { errors.city = 'Required'; isValid = false }
     if (!form.zip) { errors.zip = 'Required'; isValid = false }
-    if (form.cardNumber.length < 16) { errors.cardNumber = 'Invalid number'; isValid = false }
-    if (form.cvc.length < 3) { errors.cvc = 'Invalid CVC'; isValid = false }
 
     return isValid
 }
@@ -81,7 +73,13 @@ const handlePlaceOrder = async () => {
         // Create order via API
         const order = await api.createOrder({ 
             items: orderItems,
-            // Pass customer info if API supported it, simplified for now
+            email: form.email,
+            firstName: form.firstName,
+            lastName: form.lastName,
+            address: form.address,
+            city: form.city,
+            country: form.country,
+            zip: form.zip
         })
 
         clearCart()
@@ -191,33 +189,19 @@ onMounted(() => {
                     </div>
                 </section>
 
-                 <!-- Payment (Mock) -->
+                <!-- Payment (COD) -->
                 <section class="section-block">
                     <h2>Payment Method</h2>
-                    <div class="credit-card-mock">
-                        <div class="form-group">
-                            <label>Card Number</label>
-                            <div class="input-with-icon">
-                                <span class="input-icon">💳</span>
-                                <input v-model="form.cardNumber" type="text" class="input-field" :class="{ error: errors.cardNumber }" placeholder="0000 0000 0000 0000" maxlength="19">
+                    <div class="payment-method-cod">
+                        <div class="cod-option selected">
+                            <span class="icon">💵</span>
+                            <div class="cod-info">
+                                <span class="title">Cash on Delivery</span>
+                                <span class="desc">Pay in cash when you receive your order</span>
                             </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Name on Card</label>
-                                <input v-model="form.cardName" type="text" class="input-field" placeholder="John Doe">
-                            </div>
-                            <div class="form-group small">
-                                <label>Exp</label>
-                                <input v-model="form.expDate" type="text" class="input-field" placeholder="MM/YY" maxlength="5">
-                            </div>
-                            <div class="form-group small">
-                                <label>CVC</label>
-                                <input v-model="form.cvc" type="text" class="input-field" :class="{ error: errors.cvc }" placeholder="123" maxlength="4">
-                            </div>
+                            <span class="check">✓</span>
                         </div>
                     </div>
-                    <p class="secure-note">🔒 Payments are secure and encrypted.</p>
                 </section>
 
                 <button class="btn btn-primary btn-lg place-order-btn mobile-only" @click="handlePlaceOrder" :disabled="loading">
@@ -372,36 +356,48 @@ onMounted(() => {
 }
 
 /* Payment */
-.credit-card-mock {
-    background: #f8fafc;
-    padding: 1.5rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
+.payment-method-cod {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-.input-with-icon {
-    position: relative;
-}
-
-.input-icon {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.2rem;
-}
-
-.input-with-icon .input-field {
-    padding-left: 3rem;
-}
-
-.secure-note {
-    margin-top: 1rem;
-    font-size: 0.875rem;
-    color: var(--text-muted);
+.cod-option {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--primary);
+    background: #f0fdf4; /* Light green bg */
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cod-option .icon {
+    font-size: 1.5rem;
+}
+
+.cod-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.cod-info .title {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.cod-info .desc {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.cod-option .check {
+    color: var(--primary);
+    font-weight: 800;
+    font-size: 1.2rem;
 }
 
 /* Summary */
