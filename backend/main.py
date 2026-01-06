@@ -50,6 +50,8 @@ origins = [
     "http://localhost:3001",
     "http://192.168.240.1:3000",
     "http://192.168.240.1:3001",
+    "https://ali203495.github.io", # GitHub Pages
+    "https://elwali-shop.is-a.dev", # Future Custom Domain
     "*", # Allow all for development testing across LAN
 ]
 
