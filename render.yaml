@@ -22,13 +22,12 @@ services:
   # ------------------------------------
   # 2. Frontend Service (Nuxt Static)
   # ------------------------------------
-  - type: web
+  - type: static
     name: maison-frontend
     plan: free # or starter
-    env: node
     rootDir: frontend
-    buildCommand: npm install && npm run build
-    startCommand: node .output/server/index.mjs
+    buildCommand: npm install && npm run generate
+    publishDir: .output/public
     envVars:
       - key: NODE_VERSION
         value: 18.x

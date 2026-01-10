@@ -22,7 +22,7 @@ export default defineNuxtConfig({
         '~/assets/css/main.css'
     ],
     app: {
-        baseURL: '/EL_WALI-SHOP/', // GitHub Pages repository name
+        baseURL: '/',
         head: {
             title: 'MAISON EL WALI - Luxury Gold & Jewelry',
             titleTemplate: '%s | MAISON EL WALI',
@@ -44,7 +44,7 @@ export default defineNuxtConfig({
                 { name: 'twitter:description', content: 'Discover timeless elegance at Maison El Wali. Premium gold jewelry.' },
             ],
             link: [
-                { rel: 'icon', type: 'image/x-icon', href: '/EL_WALI-SHOP/favicon.ico' },
+                { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
                 { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
                 { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
             ],
@@ -59,10 +59,6 @@ export default defineNuxtConfig({
     },
     nitro: {
         preset: 'static',
-        output: {
-            dir: '../docs', // Output to docs folder for GitHub Pages
-            publicDir: '../docs' // Public files go to docs root
-        },
         devProxy: {
             '/api': {
                 target: 'http://localhost:8000',
@@ -75,7 +71,7 @@ export default defineNuxtConfig({
     },
     runtimeConfig: {
         public: {
-            apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
+            apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000',
             facebookPixelId: process.env.NUXT_PUBLIC_FACEBOOK_PIXEL_ID || ''
         }
     }
