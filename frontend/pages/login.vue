@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { gsap } from 'gsap'
 import { useAuthStore } from '~/stores/auth'
-import gsap from 'gsap'
+const { translateLanguage } = useLanguage()
 
 useHead({
-    title: 'Admin Login',
+    title: translateLanguage('admin.admin_login'),
     meta: [
         { name: 'robots', content: 'noindex, nofollow' }
     ]
@@ -19,8 +20,21 @@ const password = ref('')
 const isLoading = ref(false)
 const error = ref('')
 const auth = useAuthStore()
+const { ping } = useApi()
+const backendStatus = ref<'checking' | 'online' | 'offline'>('checking')
+
+const checkBackend = async () => {
+    try {
+        await ping()
+        backendStatus.value = 'online'
+    } catch (e) {
+        // console.error('Backend unreachable:', e)
+        backendStatus.value = 'offline'
+    }
+}
 
 onMounted(() => {
+    checkBackend()
     gsap.from('.login-card', {
         y: 60,
         opacity: 0,
@@ -49,7 +63,7 @@ const handleLogin = async () => {
                 onComplete: () => navigateTo('/admin')
             } as any)
         } else {
-            error.value = 'Invalid username or password'
+            error.value = translateLanguage('admin.invalid_credentials')
             gsap.to('.login-card', {
                 x: [-10, 10, -10, 10, 0],
                 duration: 0.4,
@@ -67,61 +81,75 @@ const handleLogin = async () => {
             <div class="gradient-orb orb-1"></div>
             <div class="gradient-orb orb-2"></div>
         </div>
+
+        <div class="lang-switcher-wrapper">
+            <LanguageSwitcher />
+        </div>
         
         <div class="login-content">
             <div class="brand-logo">
-                <h1>LUXE<span>.TECH</span></h1>
+                <h1>MAISON <span>EL WALI</span></h1>
             </div>
             
             <div class="login-card">
-                <h2>Welcome Back</h2>
-                <p class="subtitle">Sign in to access the admin dashboard</p>
+                <div class="backend-status-badge" :class="backendStatus">
+                    <span class="dot"></span>
+                    {{ backendStatus === 'online' ? translateLanguage('admin.backend_online') : backendStatus === 'offline' ? translateLanguage('admin.backend_offline') : translateLanguage('admin.checking_connectivity') }}
+                </div>
+                <h2>{{ translateLanguage('admin.welcome_back') }}</h2>
+                <p class="subtitle">{{ translateLanguage('admin.sign_in_subtitle') }}</p>
                 
                 <div class="form-group">
-                    <label>Username</label>
+                    <label>{{ translateLanguage('admin.username') }}</label>
                     <input 
                         v-model="username" 
                         class="input-field" 
                         type="text" 
-                        placeholder="Enter username"
+                        :placeholder="translateLanguage('admin.search_placeholder').replace('...', '')"
                         @keyup.enter="handleLogin"
                     />
                 </div>
                 
                 <div class="form-group">
-                    <label>Password</label>
+                    <label>{{ translateLanguage('admin.password') }}</label>
                     <input 
                         v-model="password" 
                         class="input-field" 
                         type="password" 
-                        placeholder="Enter password"
+                        :placeholder="translateLanguage('admin.password')"
                         @keyup.enter="handleLogin"
                     />
                 </div>
 
                 <div class="forgot-password">
-                    <NuxtLink to="/forgot-password">Forgot Password?</NuxtLink>
+                    <NuxtLink to="/forgot-password">{{ translateLanguage('admin.forgot_password') }}</NuxtLink>
                 </div>
                 
                 <p v-if="error" class="error-message">{{ error }}</p>
                 
                 <button 
                     class="btn btn-primary btn-lg login-btn" 
+                    :disabled="isLoading || !username || !password || backendStatus === 'offline'"
                     @click="handleLogin"
-                    :disabled="isLoading || !username || !password"
                 >
-                    <span v-if="isLoading">Signing in...</span>
-                    <span v-else>Sign In</span>
+                    <span v-if="isLoading">{{ translateLanguage('admin.signing_in') }}</span>
+                    <span v-else>{{ translateLanguage('admin.sign_in') }}</span>
                 </button>
                 
             </div>
             
-            <NuxtLink to="/" class="back-link">← Back to Store</NuxtLink>
+            <NuxtLink to="/" class="back-link">← {{ translateLanguage('common.back_to_store') }}</NuxtLink>
         </div>
     </div>
 </template>
 
 <style scoped>
+.lang-switcher-wrapper {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 100;
+}
 .login-page {
     min-height: 100vh;
     display: flex;
@@ -188,6 +216,48 @@ const handleLogin = async () => {
     width: 420px;
     max-width: 90vw;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.backend-status-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.backend-status-badge.online {
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.backend-status-badge.offline {
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.backend-status-badge .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #94a3b8;
+}
+
+.backend-status-badge.online .dot {
+    background: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+
+.backend-status-badge.offline .dot {
+    background: #ef4444;
 }
 
 .login-card h2 {

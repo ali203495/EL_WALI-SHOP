@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import gsap from 'gsap'
+import { gsap } from 'gsap'
+
+const { translateLanguage } = useLanguage()
+const { cart, total, clearCart } = useCart()
+const api = useApi()
+const router = useRouter()
 
 useHead({
-    title: 'Checkout | LUXE.TECH',
+    title: `${translateLanguage('checkout.title')} | Maison El Wali`,
     meta: [
         { name: 'robots', content: 'noindex' }
     ]
 })
-
-const { cart, subtotal, tax, total, clearCart } = useCart()
-const api = useApi()
-const router = useRouter()
 
 const loading = ref(false)
 const processingStep = ref(0) // 0: input, 1: processing, 2: success
@@ -41,12 +42,12 @@ const validateForm = () => {
         errors[key] = ''
     })
 
-    if (!form.email.includes('@')) { errors.email = 'Valid email required'; isValid = false }
-    if (!form.firstName) { errors.firstName = 'Required'; isValid = false }
-    if (!form.lastName) { errors.lastName = 'Required'; isValid = false }
-    if (!form.address) { errors.address = 'Required'; isValid = false }
-    if (!form.city) { errors.city = 'Required'; isValid = false }
-    if (!form.zip) { errors.zip = 'Required'; isValid = false }
+    if (!form.email.includes('@')) { errors.email = translateLanguage('checkout.email_error'); isValid = false }
+    if (!form.firstName) { errors.firstName = translateLanguage('checkout.required_error'); isValid = false }
+    if (!form.lastName) { errors.lastName = translateLanguage('checkout.required_error'); isValid = false }
+    if (!form.address) { errors.address = translateLanguage('checkout.required_error'); isValid = false }
+    if (!form.city) { errors.city = translateLanguage('checkout.required_error'); isValid = false }
+    if (!form.zip) { errors.zip = translateLanguage('checkout.required_error'); isValid = false }
 
     return isValid
 }
@@ -91,7 +92,7 @@ const handlePlaceOrder = async () => {
         })
 
     } catch (e) {
-        alert('Failed to place order. Please try again.')
+        alert(translateLanguage('checkout.failed_order'))
         loading.value = false
         processingStep.value = 0
     }
@@ -129,7 +130,7 @@ onMounted(() => {
     <div class="checkout-page">
         <div class="checkout-header">
             <div class="container">
-                <NuxtLink to="/" class="logo">LUXE<span class="highlight">.TECH</span></NuxtLink>
+                <NuxtLink to="/" class="logo">MAISON <span class="highlight">EL WALI</span></NuxtLink>
             </div>
         </div>
 
@@ -138,52 +139,53 @@ onMounted(() => {
             <div class="form-section">
                 <!-- Contact Info -->
                 <section class="section-block">
-                    <h2>Contact Information</h2>
+                    <h2>{{ translateLanguage('checkout.contact_info') }}</h2>
                     <div class="form-group">
-                        <label>Email Address</label>
+                        <label>{{ translateLanguage('checkout.email_label') }}</label>
                         <input 
                             v-model="form.email" 
                             type="email" 
                             class="input-field" 
                             :class="{ error: errors.email }"
-                            placeholder="you@email.com"
+                            :placeholder="translateLanguage('checkout.email_placeholder')"
                         >
-                        <span class="error-msg" v-if="errors.email">{{ errors.email }}</span>
+                        <span v-if="errors.email" class="error-msg">{{ errors.email }}</span>
                     </div>
                 </section>
 
                 <!-- Shipping Address -->
                 <section class="section-block">
-                    <h2>Shipping Address</h2>
+                    <h2>{{ translateLanguage('checkout.shipping_address') }}</h2>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>First Name</label>
+                            <label>{{ translateLanguage('checkout.first_name') }}</label>
                             <input v-model="form.firstName" type="text" class="input-field" :class="{ error: errors.firstName }">
                         </div>
                         <div class="form-group">
-                            <label>Last Name</label>
+                            <label>{{ translateLanguage('checkout.last_name') }}</label>
                             <input v-model="form.lastName" type="text" class="input-field" :class="{ error: errors.lastName }">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Address</label>
-                        <input v-model="form.address" type="text" class="input-field" :class="{ error: errors.address }" placeholder="123 Main St">
+                        <label>{{ translateLanguage('checkout.address') }}</label>
+                        <input v-model="form.address" type="text" class="input-field" :class="{ error: errors.address }" :placeholder="translateLanguage('checkout.address_placeholder')">
                     </div>
                     <div class="form-row three-col">
                         <div class="form-group">
-                            <label>City</label>
+                            <label>{{ translateLanguage('checkout.city') }}</label>
                             <input v-model="form.city" type="text" class="input-field" :class="{ error: errors.city }">
                         </div>
                         <div class="form-group">
-                            <label>Country</label>
+                            <label>{{ translateLanguage('checkout.country') }}</label>
                             <select v-model="form.country" class="input-field select-field">
+                                <option value="MA">Morocco</option>
+                                <option value="AE">United Arab Emirates</option>
+                                <option value="FR">France</option>
                                 <option value="US">United States</option>
-                                <option value="CA">Canada</option>
-                                <option value="UK">United Kingdom</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>ZIP / Postal</label>
+                            <label>{{ translateLanguage('checkout.zip') }}</label>
                             <input v-model="form.zip" type="text" class="input-field" :class="{ error: errors.zip }">
                         </div>
                     </div>
@@ -191,28 +193,28 @@ onMounted(() => {
 
                 <!-- Payment (COD) -->
                 <section class="section-block">
-                    <h2>Payment Method</h2>
+                    <h2>{{ translateLanguage('checkout.payment_method') }}</h2>
                     <div class="payment-method-cod">
                         <div class="cod-option selected">
                             <span class="icon">💵</span>
                             <div class="cod-info">
-                                <span class="title">Cash on Delivery</span>
-                                <span class="desc">Pay in cash when you receive your order</span>
+                                <span class="title">{{ translateLanguage('checkout.cod_title') }}</span>
+                                <span class="desc">{{ translateLanguage('checkout.cod_desc') }}</span>
                             </div>
                             <span class="check">✓</span>
                         </div>
                     </div>
                 </section>
 
-                <button class="btn btn-primary btn-lg place-order-btn mobile-only" @click="handlePlaceOrder" :disabled="loading">
-                    {{ loading ? 'Processing...' : `Pay $${total.toFixed(2)}` }}
+                <button class="btn btn-primary btn-lg place-order-btn mobile-only" :disabled="loading" @click="handlePlaceOrder">
+                    {{ loading ? translateLanguage('checkout.processing') : `${translateLanguage('checkout.pay')} ${total.toLocaleString()} ${translateLanguage('common.currency')}` }}
                 </button>
             </div>
 
             <!-- Right Column: Summary -->
             <div class="summary-section">
                 <div class="summary-card">
-                    <h2>Order Summary</h2>
+                    <h2>{{ translateLanguage('checkout.order_summary') }}</h2>
                     
                     <div class="summary-items">
                         <div v-for="item in cart" :key="item.product.id" class="summary-item">
@@ -223,32 +225,24 @@ onMounted(() => {
                             <div class="item-info">
                                 <span>{{ item.product.name }}</span>
                             </div>
-                            <span class="item-price">${{ (item.product.price * item.quantity).toLocaleString() }}</span>
+                            <span class="item-price">{{ (item.product.price * item.quantity).toLocaleString() }} {{ translateLanguage('common.currency') }}</span>
                         </div>
                     </div>
 
                     <div class="summary-totals">
                         <div class="total-row">
-                            <span>Subtotal</span>
-                            <span>${{ subtotal.toFixed(2) }}</span>
-                        </div>
-                        <div class="total-row">
-                            <span>Shipping</span>
-                            <span>Free</span>
-                        </div>
-                        <div class="total-row">
-                            <span>Tax (8%)</span>
-                            <span>${{ tax.toFixed(2) }}</span>
+                            <span>{{ translateLanguage('checkout.shipping') }}</span>
+                            <span>{{ translateLanguage('checkout.shipping') === 'Shipping' ? 'Free' : translateLanguage('checkout.free') }}</span>
                         </div>
                         <div class="total-row grand-total">
-                            <span>Total</span>
-                            <span><span class="currency">USD</span> ${{ total.toFixed(2) }}</span>
+                            <span>{{ translateLanguage('checkout.total') }}</span>
+                            <span>{{ total.toLocaleString() }} {{ translateLanguage('common.currency') }}</span>
                         </div>
                     </div>
 
-                    <button class="btn btn-primary btn-lg place-order-btn desktop-only" @click="handlePlaceOrder" :disabled="loading">
+                    <button class="btn btn-primary btn-lg place-order-btn desktop-only" :disabled="loading" @click="handlePlaceOrder">
                         <span v-if="loading" class="spinner"></span>
-                        {{ loading ? 'Processing...' : `Pay $${total.toFixed(2)}` }}
+                        {{ loading ? translateLanguage('checkout.processing') : `${translateLanguage('checkout.pay')} ${total.toLocaleString()} ${translateLanguage('common.currency')}` }}
                     </button>
                 </div>
             </div>

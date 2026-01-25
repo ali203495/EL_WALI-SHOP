@@ -1,23 +1,41 @@
-```vue
 <script setup lang="ts">
-import gsap from 'gsap'
+import { gsap } from 'gsap'
 
 const route = useRoute()
 const api = useApi()
 const { addToCart } = useCart()
+const auth = useAuthStore()
+const { translateLanguage } = useLanguage()
 const { success } = useToast()
 
+const isAdmin = computed(() => auth.user?.is_admin || auth.user?.is_super_admin)
+
 // Fetch product and all products for related
-const [
-    { data: currentProduct, pending: productLoading, error: productError },
-    { data: allProducts }
-] = await Promise.all([
+const res = await Promise.all([
     api.getProduct(Number(route.params.id)),
     api.getProducts()
 ])
 
-const quantity = ref(1)
+const { data: currentProduct, pending: productLoading, error: productError } = res[0]
+const { data: allProducts } = res[1]
+
+const globalError = computed(() => productError.value)
+
+
 const selectedImage = ref('')
+const quantity = ref(1)
+
+const incrementQty = () => {
+    if (currentProduct.value && quantity.value < (currentProduct.value.stock || 0)) {
+        quantity.value++
+    }
+}
+
+const decrementQty = () => {
+    if (quantity.value > 1) {
+        quantity.value--
+    }
+}
 
 // Initialize selected image
 watchEffect(() => {
@@ -30,7 +48,7 @@ watchEffect(() => {
 const relatedProducts = computed(() => {
     if (!allProducts.value || !currentProduct.value) return []
     return allProducts.value
-        .filter(p => p.category_id === currentProduct.value?.category_id && p.id !== currentProduct.value?.id)
+        .filter((p: any) => p.category_id === currentProduct.value?.category_id && p.id !== currentProduct.value?.id)
         .slice(0, 4)
 })
 
@@ -49,11 +67,8 @@ const handleAddToCart = () => {
         stock: currentProduct.value.stock || 0
     }
     
-    addToCart(productToAdd)
-    // Update quantity if needed (though useCart handles simple add)
-    // In a real app we might pass quantity to addToCart
-    
-    success(`${currentProduct.value.name} has been added to your cart.`)
+    addToCart(productToAdd, quantity.value)
+    success(`${currentProduct.value.name} ${translateLanguage('pdp.added_to_cart')}`)
 }
 
 // Generate star rating
@@ -70,9 +85,9 @@ const handleRetry = () => {
 
 // SEO
 useHead({
-    title: computed(() => currentProduct.value ? currentProduct.value.name : 'Product Details'),
+    title: computed(() => currentProduct.value ? `${currentProduct.value.name} | Maison El Wali` : translateLanguage('pdp.details')),
     meta: [
-        { name: 'description', content: computed(() => currentProduct.value?.description || 'Product details') },
+        { name: 'description', content: computed(() => currentProduct.value?.description || translateLanguage('pdp.details')) },
         { property: 'og:title', content: computed(() => currentProduct.value?.name) },
         { property: 'og:description', content: computed(() => currentProduct.value?.description) },
         { property: 'og:image', content: computed(() => currentProduct.value?.image_url) },
@@ -92,26 +107,32 @@ onMounted(() => {
 <template>
     <div class="pdp-wrapper">
         <!-- Loading State -->
-        <PageLoading v-if="productLoading" message="Loading product details..." />
+        <PageLoading v-if="productLoading" :message="translateLanguage('pdp.loading')" />
         
         <!-- Error State -->
         <ErrorState 
-            v-else-if="productError || !currentProduct"
+            v-else-if="globalError || !currentProduct"
             icon="⚠️"
-            title="Product Not Found"
-            description="The product you are looking for does not exist or could not be loaded."
+            :title="translateLanguage('pdp.not_found')"
+            :description="translateLanguage('pdp.not_found_desc')"
             :retryable="true"
             @retry="handleRetry"
-        />
+        >
+            <template v-if="globalError" #footer>
+                <div class="error-details">
+                    {{ globalError.message || globalError.statusText || globalError }}
+                </div>
+            </template>
+        </ErrorState>
 
         <!-- Content -->
         <div v-else class="pdp-page">
             <div class="container">
                 <!-- Breadcrumbs -->
                 <nav class="breadcrumbs">
-                    <NuxtLink to="/">Home</NuxtLink>
+                    <NuxtLink to="/">{{ translateLanguage('pdp.home') }}</NuxtLink>
                     <span class="separator">/</span>
-                    <NuxtLink to="/catalog">Catalog</NuxtLink>
+                    <NuxtLink to="/catalog">{{ translateLanguage('pdp.catalog') }}</NuxtLink>
                     <span class="separator">/</span>
                     <span class="current">{{ currentProduct.name }}</span>
                 </nav>
@@ -138,45 +159,68 @@ onMounted(() => {
                     <!-- Details -->
                     <div class="product-details">
                         <div class="product-header">
-                            <span class="brand" v-if="currentProduct.brand">{{ currentProduct.brand.name }}</span>
-                            <h1>{{ currentProduct.name }}</h1>
+                            <span v-if="currentProduct.brand" class="brand">{{ currentProduct.brand.name }}</span>
+                            <div class="header-main">
+                                <h1>{{ currentProduct.name }}</h1>
+                                <NuxtLink 
+                                    v-if="isAdmin" 
+                                    :to="`/admin/products?id=${currentProduct.id}`" 
+                                    class="btn btn-sm btn-outline edit-btn"
+                                >
+                                    ✏️ {{ translateLanguage('admin.edit') || 'Edit' }}
+                                </NuxtLink>
+                            </div>
                             <div class="rating-review">
                                 <div class="stars">
                                     <span v-for="n in starRating.full" :key="`full-${n}`">⭐</span>
                                     <span v-if="starRating.half">⭐️</span> 
                                 </div>
-                                <span class="review-count">({{ currentProduct.review_count || 0 }} reviews)</span>
+                                <span class="review-count">({{ currentProduct.review_count || 0 }} {{ translateLanguage('pdp.reviews') }})</span>
                             </div>
                         </div>
 
                         <div class="price-section">
-                            <span class="price">${{ currentProduct.price.toLocaleString() }}</span>
+                            <span class="price">{{ currentProduct.price.toLocaleString() }} {{ translateLanguage('common.currency') }}</span>
                             <span class="stock-status" :class="{ 'in-stock': currentProduct.stock > 0, 'out-stock': currentProduct.stock === 0 }">
-                                {{ currentProduct.stock > 0 ? 'In Stock' : 'Out of Stock' }}
+                                {{ currentProduct.stock > 0 ? translateLanguage('pdp.in_stock') : translateLanguage('pdp.out_stock') }}
                             </span>
                         </div>
 
                         <p class="description">{{ currentProduct.description }}</p>
 
-                        <div class="actions">
-                            <button 
-                                class="btn btn-lg btn-primary add-cart-btn"
-                                :disabled="currentProduct.stock === 0"
-                                @click="handleAddToCart"
-                            >
-                                {{ currentProduct.stock > 0 ? 'Add to Cart' : 'Out of Stock' }}
-                            </button>
-                            <button class="btn btn-lg btn-outline wishlist-btn">
-                                ❤️
+                        <div v-if="currentProduct.stock > 0" class="actions-wrapper">
+                            <div class="qty-selector-pdp">
+                                <label>{{ translateLanguage('pdp.quantity') }}</label>
+                                <div class="qty-controls">
+                                    <button class="qty-btn" :disabled="quantity <= 1" @click="decrementQty">−</button>
+                                    <span class="qty-value">{{ quantity }}</span>
+                                    <button class="qty-btn" :disabled="quantity >= currentProduct.stock" @click="incrementQty">+</button>
+                                </div>
+                            </div>
+                            <div class="actions">
+                                <button 
+                                    class="btn btn-lg btn-primary add-cart-btn"
+                                    @click="handleAddToCart"
+                                >
+                                    {{ translateLanguage('pdp.add_to_cart') }}
+                                </button>
+                                <button class="btn btn-lg btn-outline wishlist-btn">
+                                    ❤️
+                                </button>
+                            </div>
+                        </div>
+                        <div v-else class="actions">
+                            <button class="btn btn-lg btn-primary add-cart-btn" disabled>
+                                {{ translateLanguage('pdp.out_stock') }}
                             </button>
                         </div>
 
                         <!-- Specs -->
-                        <div class="specs-section" v-if="currentProduct.specs">
-                            <h3>Specifications</h3>
+                        <div v-if="currentProduct.specs" class="specs-section">
+                            <h3>{{ translateLanguage('pdp.specs') }}</h3>
                             <dl class="specs-grid">
                                 <template v-for="(value, key) in currentProduct.specs" :key="key">
-                                    <dt>{{ key.replace(/_/g, ' ') }}</dt>
+                                    <dt>{{ String(key).replace(/_/g, ' ') }}</dt>
                                     <dd>{{ value }}</dd>
                                 </template>
                             </dl>
@@ -185,8 +229,8 @@ onMounted(() => {
                 </div>
 
                 <!-- Related Products -->
-                <section class="related-products" v-if="relatedProducts.length > 0">
-                    <h2>You Might Also Like</h2>
+                <section v-if="relatedProducts.length > 0" class="related-products">
+                    <h2>{{ translateLanguage('pdp.related') }}</h2>
                     <div class="related-grid">
                         <NuxtLink 
                             v-for="product in relatedProducts" 
@@ -199,7 +243,7 @@ onMounted(() => {
                             </div>
                             <div class="related-info">
                                 <h4>{{ product.name }}</h4>
-                                <span class="related-price">${{ product.price.toLocaleString() }}</span>
+                                <span class="related-price">{{ product.price.toLocaleString() }} {{ translateLanguage('common.currency') }}</span>
                             </div>
                         </NuxtLink>
                     </div>
@@ -208,9 +252,9 @@ onMounted(() => {
                 <!-- CTA -->
                  <section class="store-cta-section">
                     <div class="cta-content">
-                        <h2>Experience it in Person</h2>
-                        <p>Visit one of our premium showrooms to test this product before you buy.</p>
-                        <NuxtLink to="/stores" class="btn btn-primary">Find a Store</NuxtLink>
+                        <h2>{{ translateLanguage('stores.experience_person') }}</h2>
+                        <p>{{ translateLanguage('stores.experience_desc') }}</p>
+                        <NuxtLink to="/stores" class="btn btn-primary">{{ translateLanguage('about.find_store') }}</NuxtLink>
                     </div>
                 </section>
             </div>
@@ -336,8 +380,24 @@ h1 {
     line-height: 1.1;
     margin-bottom: 1rem;
     background: linear-gradient(135deg, var(--text) 0%, var(--text-muted) 100%);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+.header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.edit-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+    border-color: var(--primary);
+    color: var(--primary);
+    white-space: nowrap;
 }
 
 .rating-review {
@@ -388,10 +448,74 @@ h1 {
     margin-bottom: 2rem;
 }
 
+/* Actions */
+.actions-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.qty-selector-pdp {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    background: var(--surface);
+    padding: 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    width: fit-content;
+}
+
+.qty-selector-pdp label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.qty-controls {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.qty-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: white;
+    border-radius: var(--radius-sm);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.qty-btn:hover:not(:disabled) {
+    background: var(--primary);
+    color: white;
+}
+
+.qty-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.qty-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    min-width: 40px;
+    text-align: center;
+}
+
 .actions {
     display: flex;
     gap: 1rem;
-    margin-bottom: 3rem;
 }
 
 .add-cart-btn {

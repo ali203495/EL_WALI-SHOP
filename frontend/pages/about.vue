@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import gsap from 'gsap'
+import { gsap } from 'gsap'
+const { translateLanguage } = useLanguage()
 
 onMounted(() => {
     // Background blobs animation
@@ -58,9 +59,9 @@ onMounted(() => {
 })
 
 useHead({
-    title: 'About Us | LUXE.TECH',
+    title: `${translateLanguage('about.title')} | Maison El Wali`,
     meta: [
-        { name: 'description', content: 'Experience the future of technology at LUXE.TECH. Premium devices, curated selection, and expert guidance.' }
+        { name: 'description', content: translateLanguage('about.hero_subtitle') }
     ]
 })
 </script>
@@ -75,9 +76,9 @@ useHead({
         <section class="hero-section">
             <div class="glass-container hero-container">
                 <div class="hero-content">
-                    <span class="brand-tag">LUXE.TECH</span>
-                    <h1>Curating the<br><span class="gradient-text">Future of Tech</span></h1>
-                    <p>Your premier destination for premium devices and cutting-edge innovations.</p>
+                    <span class="brand-tag">MAISON EL WALI</span>
+                    <h1>{{ translateLanguage('about.hero_title').split(' ')[0] }} {{ translateLanguage('about.hero_title').split(' ')[1] }}<br><span class="gradient-text">{{ translateLanguage('about.hero_title').split(' ').slice(2).join(' ') }}</span></h1>
+                    <p>{{ translateLanguage('about.hero_subtitle') }}</p>
                 </div>
             </div>
         </section>
@@ -86,29 +87,28 @@ useHead({
         <section class="mission-section container">
             <div class="mission-card glass-panel">
                 <div class="mission-content">
-                    <h2>Our Mission</h2>
+                    <h2>{{ translateLanguage('about.mission_title') }}</h2>
                     <p class="mission-text">
-                        We believe technology should be more than just functional—it should be an experience. 
-                        At LUXE.TECH, we bridge the gap between premium design and human potential.
+                        {{ translateLanguage('about.mission_desc') }}
                     </p>
                     <div class="stats-row">
                         <div class="stat-item">
                             <span class="stat-number">50+</span>
-                            <span class="stat-label">Premium Brands</span>
+                            <span class="stat-label">{{ translateLanguage('about.premium_brands') }}</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-number">12</span>
-                            <span class="stat-label">Global Showrooms</span>
+                            <span class="stat-label">{{ translateLanguage('about.global_showrooms') }}</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-number">24/7</span>
-                            <span class="stat-label">Expert Support</span>
+                            <span class="stat-label">{{ translateLanguage('about.expert_support') }}</span>
                         </div>
                     </div>
                 </div>
                 <div class="mission-visual">
                     <div class="visual-circle"></div>
-                    <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80" alt="Futuristic Architecture" class="mission-img">
+                    <img src="/images/workshop.png" alt="Maison El Wali Heritage Workshop" class="mission-img">
                 </div>
             </div>
         </section>
@@ -116,24 +116,24 @@ useHead({
         <!-- Values Section -->
         <section class="values-section container">
             <div class="section-header">
-                <h2>Why Choose Us</h2>
-                <p>The standards that define our collection</p>
+                <h2>{{ translateLanguage('about.why_choose_us') }}</h2>
+                <p>{{ translateLanguage('about.standards_desc') }}</p>
             </div>
             <div class="values-grid">
                 <div class="value-card glass-panel">
                     <div class="icon-box">💎</div>
-                    <h3>Curated Excellence</h3>
-                    <p>Every product is hand-picked for superior build quality, design, and performance.</p>
+                    <h3>{{ translateLanguage('about.curated_excellence') }}</h3>
+                    <p>{{ translateLanguage('about.curated_desc') }}</p>
                 </div>
                 <div class="value-card glass-panel">
                     <div class="icon-box">🚀</div>
-                    <h3>Innovation First</h3>
-                    <p>Access the latest technology as soon as it launches, ahead of the mass market.</p>
+                    <h3>{{ translateLanguage('about.innovation_first') }}</h3>
+                    <p>{{ translateLanguage('about.innovation_desc') }}</p>
                 </div>
                 <div class="value-card glass-panel">
                     <div class="icon-box">🛡️</div>
-                    <h3>Premium Guarantee</h3>
-                    <p>Comprehensive warranty coverage and dedicated concierge support for every purchase.</p>
+                    <h3>{{ translateLanguage('about.premium_guarantee') }}</h3>
+                    <p>{{ translateLanguage('about.guarantee_desc') }}</p>
                 </div>
             </div>
         </section>
@@ -141,11 +141,11 @@ useHead({
         <!-- CTA Section -->
         <section class="cta-section">
             <div class="glass-container cta-container">
-                <h2>Ready to Experience It?</h2>
-                <p>Visit our digital showroom or find a location near you.</p>
+                <h2>{{ translateLanguage('about.ready_to_experience') }}</h2>
+                <p>{{ translateLanguage('about.cta_desc') }}</p>
                 <div class="cta-actions">
-                    <NuxtLink to="/catalog" class="btn btn-primary btn-lg">Browse Collection</NuxtLink>
-                    <NuxtLink to="/stores" class="btn btn-outline btn-lg">Find a Store</NuxtLink>
+                    <NuxtLink to="/catalog" class="btn btn-primary btn-lg">{{ translateLanguage('about.browse_collection') }}</NuxtLink>
+                    <NuxtLink to="/stores" class="btn btn-outline btn-lg">{{ translateLanguage('about.find_store') }}</NuxtLink>
                 </div>
             </div>
         </section>

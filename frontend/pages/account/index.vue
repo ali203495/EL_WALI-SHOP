@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { translateLanguage, locale } = useLanguage()
 const auth = useAuthStore()
 const api = useApi()
 
@@ -8,10 +9,35 @@ definePageMeta({
 })
 
 // Fetch recent orders
-const { data: recentOrders } = await api.getOrders()
+const recentOrders = ref<any[]>([])
+const loading = ref(true)
+const error = ref<any>(null)
 
-// Filter to top 3 logic if backend returns all (though backend now filters)
-// But to be safe and efficient UI
+const fetchData = async () => {
+    loading.value = true
+    error.value = null
+    try {
+        const { data, error: apiError } = await api.getOrders()
+        if (apiError.value) {
+            error.value = apiError.value
+            return
+        }
+        recentOrders.value = data.value || []
+    } catch (e) {
+        error.value = e
+    } finally {
+        loading.value = false
+    }
+}
+
+const handleRetry = () => {
+    fetchData()
+}
+
+onMounted(() => {
+    fetchData()
+})
+
 const displayOrders = computed(() => {
     return recentOrders.value?.slice(0, 3) || []
 })
@@ -20,48 +46,67 @@ const displayOrders = computed(() => {
 <template>
     <div class="account-dashboard">
         <header class="section-header">
-            <h1>مرحباً، {{ auth.user?.first_name }} 👋</h1>
-            <p>هذه لوحة التحكم الخاصة بك. يمكنك متابعة طلباتك وتحديث بياناتك.</p>
+            <h1>{{ translateLanguage('account.welcome') }}, {{ auth.user?.first_name }}</h1>
+            <p>{{ translateLanguage('account.dashboard_desc') }}</p>
         </header>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <span class="icon">📦</span>
-                <div class="info">
-                    <span class="value">{{ recentOrders?.length || 0 }}</span>
-                    <span class="label">إجمالي الطلبات</span>
-                </div>
-            </div>
-            <!-- Add more stats if needed -->
-        </div>
+        <!-- Loading State -->
+        <PageLoading v-if="loading" :message="translateLanguage('account.loading')" />
 
-        <section class="recent-orders mt-8">
-            <div class="section-title">
-                <h2>أحدث الطلبات</h2>
-                <NuxtLink to="/account/orders" class="view-all">عرض الكل</NuxtLink>
-            </div>
-            
-            <div v-if="displayOrders.length > 0" class="orders-list">
-                <div v-for="order in displayOrders" :key="order.id" class="order-card">
-                    <div class="order-header">
-                        <span class="order-id">#{{ order.id }}</span>
-                        <span class="order-date">{{ new Date(order.created_at || '').toLocaleDateString('ar-SA') }}</span>
-                    </div>
-                    <div class="order-info">
-                        <div class="status">
-                            <span class="status-badge" :class="order.status">{{ order.status }}</span>
-                        </div>
-                        <div class="total">
-                            {{ order.total_amount?.toLocaleString() }} ريال
-                        </div>
+        <!-- Error State -->
+        <ErrorState 
+            v-else-if="error"
+            :title="translateLanguage('admin.failed_load')"
+            :description="translateLanguage('common.error_desc')"
+            :retryable="true"
+            @retry="handleRetry"
+        >
+            <template #footer>
+                <div class="error-details">
+                    {{ error.message || error.statusText || error }}
+                </div>
+            </template>
+        </ErrorState>
+
+        <template v-else>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="icon">✧</span>
+                    <div class="info">
+                        <span class="value">{{ recentOrders.length }}</span>
+                        <span class="label">{{ translateLanguage('account.total_orders') }}</span>
                     </div>
                 </div>
             </div>
-            <div v-else class="empty-state">
-                <p>لا توجد طلبات حتى الآن.</p>
-                <NuxtLink to="/catalog" class="btn btn-primary btn-sm">تصفح المنتجات</NuxtLink>
-            </div>
-        </section>
+
+            <section class="recent-orders mt-8">
+                <div class="section-title">
+                    <h2>{{ translateLanguage('account.recent_orders') }}</h2>
+                    <NuxtLink to="/account/orders" class="view-all">{{ translateLanguage('account.view_all') }}</NuxtLink>
+                </div>
+                
+                <div v-if="displayOrders.length > 0" class="orders-list">
+                    <div v-for="order in displayOrders" :key="order.id" class="order-card">
+                        <div class="order-header">
+                            <span class="order-id">#{{ order.id }}</span>
+                            <span class="order-date">{{ new Date(order.created_at || '').toLocaleDateString(locale === 'ar' ? 'ar-SA' : locale === 'fr' ? 'fr-FR' : 'en-US') }}</span>
+                        </div>
+                        <div class="order-info">
+                            <div class="status">
+                                <span class="status-badge" :class="order.status">{{ order.status }}</span>
+                            </div>
+                            <div class="total">
+                                {{ order.total_amount?.toLocaleString() }} {{ translateLanguage('common.currency') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="empty-state">
+                    <p>{{ translateLanguage('account.no_orders') }}</p>
+                    <NuxtLink to="/catalog" class="btn btn-primary btn-sm">{{ translateLanguage('wishlist.browse') }}</NuxtLink>
+                </div>
+            </section>
+        </template>
     </div>
 </template>
 

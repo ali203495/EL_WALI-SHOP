@@ -12,6 +12,7 @@ import {
 } from 'chart.js'
 import { Line } from 'vue-chartjs'
 import { computed } from 'vue'
+const { translateLanguage, locale } = useLanguage()
 
 ChartJS.register(
   CategoryScale,
@@ -53,17 +54,29 @@ const chartData = computed(() => {
   }
 
   return {
-    labels: last7Days.map(d => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+    labels: last7Days.map(d => new Date(d).toLocaleDateString(locale.value === 'ar' ? 'ar-EG' : (locale.value === 'fr' ? 'fr-FR' : 'en-US'), { month: 'short', day: 'numeric' })),
     datasets: [
       {
-        label: 'Sales (AED)',
-        backgroundColor: 'rgba(79, 70, 229, 0.2)',
-        borderColor: '#4f46e5',
-        borderWidth: 2,
-        pointBackgroundColor: '#4f46e5',
+        label: `${translateLanguage('admin.sales')} (${translateLanguage('common.currency')})`,
+        backgroundColor: (context: any) => {
+          const chart = context.chart;
+          const {ctx, chartArea} = chart;
+          if (!chartArea) return 'rgba(16, 185, 129, 0.1)';
+          const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+          gradient.addColorStop(0, 'rgba(16, 185, 129, 0.01)');
+          gradient.addColorStop(1, 'rgba(16, 185, 129, 0.15)');
+          return gradient;
+        },
+        borderColor: '#10b981',
+        borderWidth: 3,
+        pointBackgroundColor: '#10b981',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
         fill: true,
         data: last7Days.map(d => salesByDate[d] || 0),
-        tension: 0.4
+        tension: 0.45
       }
     ]
   }
@@ -78,7 +91,7 @@ const chartOptions = {
     },
     tooltip: {
       callbacks: {
-        label: (context: any) => ` ${context.parsed.y.toLocaleString()} AED`
+        label: (context: any) => ` ${(context.parsed.y || 0).toLocaleString()} ${translateLanguage('common.currency')}`
       }
     }
   },

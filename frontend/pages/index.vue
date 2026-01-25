@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import gsap from 'gsap'
+import { gsap } from 'gsap'
+import { useLanguage } from '../composables/useLanguage'
+
+const { translateLanguage } = useLanguage()
 
 useHead({
-    title: 'Home',
+    title: translateLanguage('home.title'),
     meta: [
-        { name: 'description', content: 'Maison El Wali - The pinnacle of luxury gold and jewelry. Discover our exclusive collections.' }
+        { name: 'description', content: translateLanguage('home.meta_desc') }
     ]
 })
 
@@ -46,8 +49,8 @@ onMounted(() => {
                 <p class="subtitle">{{ settings.hero_subtitle }}</p>
                 
                 <div class="hero-actions">
-                    <NuxtLink to="/catalog" class="btn btn-primary btn-lg">Explore Collection</NuxtLink>
-                    <NuxtLink to="/boutique" class="btn btn-outline btn-lg text-white">Visit Boutique</NuxtLink>
+                    <NuxtLink to="/catalog" class="btn btn-primary btn-lg">{{ translateLanguage('common.explore') }}</NuxtLink>
+                    <NuxtLink to="/boutique" class="btn btn-outline btn-lg text-white">{{ translateLanguage('common.visit') }}</NuxtLink>
                 </div>
             </div>
         </section>
@@ -58,18 +61,18 @@ onMounted(() => {
                 <div class="values-grid">
                     <div class="value-prop">
                         <span class="icon">✨</span>
-                        <h3>Authentic Luxury</h3>
-                        <p>Every piece is certified and crafted with the highest purity gold.</p>
+                        <h3>{{ translateLanguage('home.luxury_authentic') }}</h3>
+                        <p>{{ translateLanguage('home.luxury_desc') }}</p>
                     </div>
                     <div class="value-prop">
                         <span class="icon">🌍</span>
-                        <h3>Global Shipping</h3>
-                        <p>Secure, insured delivery to your doorstep, anywhere in the world.</p>
+                        <h3>{{ translateLanguage('home.global_shipping') }}</h3>
+                        <p>{{ translateLanguage('home.shipping_desc') }}</p>
                     </div>
                     <div class="value-prop">
                         <span class="icon">💎</span>
-                        <h3>Bespoke Design</h3>
-                        <p>Collaborate with our artisans to bring your unique vision to life.</p>
+                        <h3>{{ translateLanguage('home.bespoke_design') }}</h3>
+                        <p>{{ translateLanguage('home.bespoke_desc') }}</p>
                     </div>
                 </div>
             </div>
@@ -79,13 +82,13 @@ onMounted(() => {
         <section class="teaser-section">
              <div class="container teaser-content">
                 <div class="teaser-text">
-                    <h2>The Gold Standard</h2>
-                    <p>From Dubai to the world, we bring you jewelry that transcends generations.</p>
-                    <NuxtLink to="/about" class="link-arrow">Read Our Story →</NuxtLink>
+                    <h2>{{ translateLanguage('home.gold_standard') }}</h2>
+                    <p>{{ translateLanguage('home.teaser_desc') }}</p>
+                    <NuxtLink to="/about" class="link-arrow">{{ translateLanguage('home.read_story') }} →</NuxtLink>
                 </div>
                 <!-- Decorative Image Placeholder -->
                 <div class="teaser-visual">
-                    <div class="visual-placeholder">Luxe.Tech</div>
+                    <img src="/images/jewelry-teaser.png" alt="Maison El Wali Luxury Jewelry" class="teaser-image animate-fadeInUp">
                 </div>
              </div>
         </section>
@@ -288,16 +291,15 @@ h1 {
     overflow: hidden;
 }
 
-.visual-placeholder {
+.teaser-image {
     width: 100%;
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    font-weight: 800;
-    color: #cbd5e1;
-    background: #f8fafc;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.teaser-image:hover {
+    transform: scale(1.05);
 }
 
 @media (max-width: 768px) {

@@ -62,6 +62,13 @@ export interface Order {
 
 export interface OrderCreate {
     items: { product_id: number; quantity: number }[]
+    email: string
+    firstName: string
+    lastName: string
+    address: string
+    city: string
+    country: string
+    zip: string
 }
 
 export interface TokenResponse {

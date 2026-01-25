@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import gsap from 'gsap'
+import { gsap } from 'gsap'
+
+const { translateLanguage } = useLanguage()
 
 useHead({
-    title: 'Exclusive Packages',
+    title: translateLanguage('packages.title'),
     meta: [
-        { name: 'description', content: 'Curated jewelry packages and gift sets for special occasions.' }
+        { name: 'description', content: translateLanguage('packages.meta_desc') }
     ]
 })
 
@@ -12,32 +14,32 @@ useHead({
 const packages = [
     {
         id: 1,
-        name: "Bridal Elegance Set",
-        description: "Complete wedding day jewelry set tailored for the modern bride. Includes necklace, earrings, and bracelet.",
+        name: translateLanguage('packages.pkg1_name'),
+        description: translateLanguage('packages.pkg1_desc'),
         price: 12999,
-        image: "https://images.unsplash.com/photo-1546167889-0b4f5ff52bc6?q=80&w=1000&auto=format&fit=crop",
+        image: "/images/pkg-bridal.png",
         tags: ["Bridal", "Diamond", "Gold"]
     },
     {
         id: 2,
-        name: "Anniversary Collection",
-        description: "Celebrate your milestone with our hand-picked anniversary favorites. A timeless ring and matching pendant.",
+        name: translateLanguage('packages.pkg2_name'),
+        description: translateLanguage('packages.pkg2_desc'),
         price: 5499,
-        image: "https://images.unsplash.com/photo-1603561596112-0a132b72231d?q=80&w=1000&auto=format&fit=crop",
+        image: "/images/pkg-anniversary.png",
         tags: ["Anniversary", "Romance"]
     },
     {
         id: 3,
-        name: "Everyday Luxury",
-        description: "Subtle yet stunning pieces designed for daily wear. Elevate your everyday style.",
+        name: translateLanguage('packages.pkg3_name'),
+        description: translateLanguage('packages.pkg3_desc'),
         price: 2899,
         image: "https://images.unsplash.com/photo-1599643478518-17488fbbcd75?q=80&w=1000&auto=format&fit=crop",
         tags: ["Daily", "Minimalist"]
     },
     {
         id: 4,
-        name: "Royal Gemstone Suite",
-        description: "A majestic collection featuring sapphire and diamond accents. Fit for royalty.",
+        name: translateLanguage('packages.pkg4_name'),
+        description: translateLanguage('packages.pkg4_desc'),
         price: 25000,
         image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=1000&auto=format&fit=crop",
         tags: ["Luxury", "Gemstone"]
@@ -60,8 +62,8 @@ onMounted(() => {
         <!-- Hero -->
         <section class="page-hero">
             <div class="container">
-                <h1>Curated Packages</h1>
-                <p>Exclusive sets designed for your most cherished moments</p>
+                <h1>{{ translateLanguage('packages.hero_title') }}</h1>
+                <p>{{ translateLanguage('packages.hero_subtitle') }}</p>
             </div>
         </section>
 
@@ -71,13 +73,8 @@ onMounted(() => {
                 <div class="packages-grid">
                     <div v-for="pkg in packages" :key="pkg.id" class="package-card">
                         <div class="card-image">
-                            <!-- Placeholder image handling -->
-                            <div class="image-placeholder">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="placeholder-icon"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                            </div>
-                            <!-- In a real app, img tag here -->
-                            <!-- <img :src="pkg.image" :alt="pkg.name"> -->
-                            <div class="price-tag">${{ pkg.price.toLocaleString() }}</div>
+                            <img :src="pkg.image" :alt="pkg.name" class="package-img">
+                            <div class="price-tag">{{ pkg.price.toLocaleString() }} {{ translateLanguage('common.currency') }}</div>
                         </div>
                         <div class="card-content">
                             <div class="tags">
@@ -85,7 +82,7 @@ onMounted(() => {
                             </div>
                             <h3>{{ pkg.name }}</h3>
                             <p>{{ pkg.description }}</p>
-                            <button class="btn btn-primary w-100">View Details</button>
+                            <button class="btn btn-primary w-100">{{ translateLanguage('packages.view_details') }}</button>
                         </div>
                     </div>
                 </div>
@@ -96,9 +93,9 @@ onMounted(() => {
         <section class="inquiry-section">
             <div class="container">
                 <div class="inquiry-box">
-                    <h2>Custom Packages</h2>
-                    <p>Looking for something unique? Our stylists can create a custom package just for you.</p>
-                    <NuxtLink to="/contact" class="btn btn-outline-white">Request Consultation</NuxtLink>
+                    <h2>{{ translateLanguage('packages.custom_title') }}</h2>
+                    <p>{{ translateLanguage('packages.custom_desc') }}</p>
+                    <NuxtLink to="/contact" class="btn btn-outline-white">{{ translateLanguage('packages.request') }}</NuxtLink>
                 </div>
             </div>
         </section>
@@ -161,9 +158,10 @@ onMounted(() => {
     justify-content: center;
 }
 
-.image-placeholder {
-    font-size: 4rem;
-    opacity: 0.5;
+.package-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .price-tag {

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useApi } from '~/composables/useApi'
+import { gsap } from 'gsap'
 import { useToast } from '~/composables/useToast'
-import gsap from 'gsap'
 
 useHead({
     title: 'Forgot Password',
@@ -13,7 +12,6 @@ definePageMeta({
     layout: false
 })
 
-const api = useApi()
 const toast = useToast()
 const route = useRoute()
 

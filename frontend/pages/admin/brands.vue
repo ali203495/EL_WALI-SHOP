@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useAuthStore } from '~/stores/auth'
 import { useApi } from '~/composables/useApi'
 import { useToast } from '~/composables/useToast'
+const { translateLanguage } = useLanguage()
 
 definePageMeta({
     layout: 'admin'
 })
 
 const api = useApi()
-const auth = useAuthStore()
 const toast = useToast()
 
 const brands = ref<any[]>([])
@@ -23,10 +22,14 @@ const form = ref({
 
 const fetchBrands = async () => {
     try {
-        const { data } = await api.getBrands()
+        const { data, error } = await api.getBrands()
+        if (error.value) {
+            toast.error(translateLanguage('admin.failed_load'))
+            return
+        }
         brands.value = data.value || []
     } catch (e) {
-        toast.error('Failed to fetch brands')
+        toast.error(translateLanguage('admin.failed_load'))
     }
 }
 
@@ -34,7 +37,7 @@ const handleSubmit = async () => {
     try {
         isLoading.value = true
         await api.createBrand(form.value)
-        toast.success('Brand added successfully')
+        toast.success(translateLanguage('admin.save_success'))
         showModal.value = false
         form.value = { name: '', logo_url: '' }
         await fetchBrands()
@@ -46,14 +49,14 @@ const handleSubmit = async () => {
 }
 
 const deleteBrand = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this brand?')) return
+    if (!confirm(translateLanguage('admin.delete_confirm'))) return
     
     try {
         await api.deleteBrand(id)
-        toast.success('Brand deleted')
+        toast.success(translateLanguage('admin.delete_success'))
         await fetchBrands()
     } catch (e: any) {
-        toast.error(e.response?._data?.detail || 'Failed to delete brand')
+        toast.error(e.response?._data?.detail || translateLanguage('admin.failed_load'))
     }
 }
 
@@ -63,19 +66,22 @@ onMounted(() => {
 </script>
 
 <template>
-    <div dir="rtl">
+    <div>
         <div class="header">
-            <h1>إدارة الماركات</h1>
-            <button @click="showModal = true" class="btn btn-primary">+ إضافة ماركة</button>
+            <div>
+                <h1>{{ translateLanguage('admin.brands_management') }}</h1>
+                <p class="subtitle">{{ translateLanguage('nav.admin_portal') }} / {{ translateLanguage('nav.brands') }}</p>
+            </div>
+            <button class="btn btn-primary" @click="showModal = true">+ {{ translateLanguage('admin.add_brand') }}</button>
         </div>
 
         <div class="table-container">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>الاسم</th>
-                        <th>الشعار</th>
-                        <th>إجراءات</th>
+                        <th>{{ translateLanguage('admin.name') }}</th>
+                        <th>{{ translateLanguage('admin.brand') }}</th>
+                        <th>{{ translateLanguage('admin.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -86,7 +92,7 @@ onMounted(() => {
                             <span v-else>-</span>
                         </td>
                         <td>
-                            <button @click="deleteBrand(brand.id)" class="btn-icon text-danger" title="حذف">
+                            <button class="btn-icon text-danger" :title="translateLanguage('admin.delete')" @click="deleteBrand(brand.id)">
                                 🗑️
                             </button>
                         </td>
@@ -98,21 +104,21 @@ onMounted(() => {
         <!-- Modal -->
         <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
             <div class="modal">
-                <h2>إضافة ماركة جديدة</h2>
-                <form @submit.prevent="handleSubmit" class="form-grid">
+                <h2>{{ translateLanguage('admin.add_brand') }}</h2>
+                <form class="form-grid" @submit.prevent="handleSubmit">
                     <div class="form-group">
-                        <label>اسم الماركة</label>
+                        <label>{{ translateLanguage('admin.name') }}</label>
                         <input v-model="form.name" required class="input" />
                     </div>
                      <div class="form-group">
-                        <label>رابط الشعار</label>
+                        <label>{{ translateLanguage('admin.logo_url') }}</label>
                         <input v-model="form.logo_url" class="input" />
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" @click="showModal = false" class="btn btn-outline">إلغاء</button>
+                        <button type="button" class="btn btn-outline" @click="showModal = false">{{ translateLanguage('admin.cancel') }}</button>
                         <button type="submit" class="btn btn-primary" :disabled="isLoading">
-                            {{ isLoading ? 'جاري الإضافة...' : 'إضافة' }}
+                            {{ isLoading ? translateLanguage('admin.uploading') : translateLanguage('admin.add_brand') }}
                         </button>
                     </div>
                 </form>
@@ -144,13 +150,24 @@ onMounted(() => {
 .data-table th,
 .data-table td {
     padding: 1rem;
-    text-align: right;
+    text-align: left;
     border-bottom: 1px solid var(--border);
 }
 
 .data-table th {
     background: #f8fafc;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
 }
 
 .logo-preview {

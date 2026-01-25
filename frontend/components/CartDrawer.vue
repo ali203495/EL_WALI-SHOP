@@ -9,6 +9,7 @@ const props = defineProps<{
 const emit = defineEmits(['close'])
 
 const { cart, removeFromCart, updateQuantity, subtotal, itemCount } = useCart()
+const { translateLanguage, locale } = useLanguage()
 
 // Watch for open state to animate
 watch(() => props.isOpen, (newVal) => {
@@ -72,15 +73,15 @@ const handleCheckout = () => {
         <!-- Drawer -->
         <div class="cart-drawer">
             <div class="drawer-header">
-                <h2>Shopping Cart <span class="count">({{ itemCount }})</span></h2>
+                <h2>{{ translateLanguage('cart.title') }} <span class="count">({{ itemCount }})</span></h2>
                 <button class="close-btn" @click="handleClose">✕</button>
             </div>
             
             <div class="drawer-content">
                 <div v-if="cart.length === 0" class="empty-state">
                     <span class="empty-icon">🛍️</span>
-                    <p>Your cart is empty</p>
-                    <button class="btn btn-outline" @click="handleClose">Continue Shopping</button>
+                    <p>{{ translateLanguage('cart.empty') }}</p>
+                    <button class="btn btn-outline" @click="handleClose">{{ translateLanguage('confirmation.continue_shopping') }}</button>
                 </div>
                 
                 <div v-else class="cart-items">
@@ -93,7 +94,7 @@ const handleCheckout = () => {
                                 <h3>{{ item.product.name }}</h3>
                                 <button class="remove-btn" @click="removeFromCart(item.product.id)">✕</button>
                             </div>
-                            <p class="price">${{ item.product.price.toLocaleString() }}</p>
+                            <p class="price">{{ item.product.price.toLocaleString() }} {{ translateLanguage('common.currency') }}</p>
                             <div class="item-controls">
                                 <div class="qty-control">
                                     <button @click="updateQuantity(item.product.id, item.quantity - 1)">−</button>
@@ -108,12 +109,12 @@ const handleCheckout = () => {
             
             <div class="drawer-footer" v-if="cart.length > 0">
                 <div class="subtotal">
-                    <span>Subtotal</span>
-                    <span class="amount">${{ subtotal.toLocaleString() }}</span>
+                    <span>{{ translateLanguage('common.total') }}</span>
+                    <span class="amount">{{ subtotal.toLocaleString() }} {{ translateLanguage('common.currency') }}</span>
                 </div>
-                <p class="shipping-hint">Shipping & taxes calculated at checkout</p>
+                <p class="shipping-hint">{{ translateLanguage('cart.shipping_hint') }}</p>
                 <button class="btn btn-primary btn-block checkout-btn" @click="handleCheckout">
-                    Checkout
+                    {{ translateLanguage('cart.checkout') }}
                 </button>
             </div>
         </div>

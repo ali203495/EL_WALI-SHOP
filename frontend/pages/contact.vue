@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import gsap from 'gsap'
+import { gsap } from 'gsap'
+
+const { translateLanguage } = useLanguage()
 
 useHead({
-    title: 'Contact Us | LUXE.TECH',
+    title: translateLanguage('contact.title'),
     meta: [
-        { name: 'description', content: 'Get in touch with LUXE.TECH. Visit our showrooms, call our support line, or send us a message.' }
+        { name: 'description', content: translateLanguage('contact.meta_desc') }
     ]
 })
 
@@ -123,9 +125,9 @@ onMounted(() => {
         <!-- Hero Section -->
         <section class="hero-section">
             <div class="container hero-content">
-                <span class="brand-tag">SUPPORT</span>
-                <h1>Get in <span class="gradient-text">Touch</span></h1>
-                <p>We're here to help you find the perfect technology.</p>
+                <span class="brand-tag">{{ translateLanguage('contact.support') }}</span>
+                <h1>{{ translateLanguage('contact.hero_title_1') }} <span class="gradient-text">{{ translateLanguage('contact.hero_title_2') }}</span></h1>
+                <p>{{ translateLanguage('contact.hero_subtitle') }}</p>
             </div>
         </section>
 
@@ -137,26 +139,26 @@ onMounted(() => {
                     <div class="info-card glass-panel">
                         <div class="icon-box">📍</div>
                         <div class="card-content">
-                            <h3>Visit Our Flagship</h3>
-                            <p>767 Fifth Avenue<br>New York, NY 10153</p>
-                            <a href="#" class="card-link">Get Directions →</a>
+                            <h3>{{ translateLanguage('contact.visit_flagship') }}</h3>
+                            <p>{{ translateLanguage('contact.hq_name') }}<br>{{ translateLanguage('contact.hq_address') }}</p>
+                            <a href="https://www.google.com/maps/search/?api=1&query=31.5370,-7.9692" target="_blank" class="card-link">{{ translateLanguage('boutique.get_directions') }} →</a>
                         </div>
                     </div>
                     
                     <div class="info-card glass-panel">
                         <div class="icon-box">📞</div>
                         <div class="card-content">
-                            <h3>Call Support</h3>
-                            <p class="highlight">+1 (800) LUXE-TECH</p>
-                            <p>Mon-Sat 10AM-9PM EST</p>
+                            <h3>{{ translateLanguage('contact.call_support') }}</h3>
+                            <p class="highlight">+971 4 123 4567</p>
+                            <p>Mon-Sat 10:00 - 22:00 (GST)</p>
                         </div>
                     </div>
                     
                     <div class="info-card glass-panel">
                         <div class="icon-box">✉️</div>
                         <div class="card-content">
-                            <h3>Email Us</h3>
-                            <p class="highlight">support@luxe.tech</p>
+                            <h3>{{ translateLanguage('contact.email_us') }}</h3>
+                            <p class="highlight">concierge@maisonelwali.com</p>
                             <p>24/7 Priority Support</p>
                         </div>
                     </div>
@@ -175,45 +177,45 @@ onMounted(() => {
                         <div v-if="submitted" class="success-message">
                             <div class="success-content">
                                 <div class="success-icon">✨</div>
-                                <h2>Message Received</h2>
-                                <p>Thank you for contacting LUXE.TECH. Our concierge team has received your inquiry and will respond shortly.</p>
-                                <button class="btn btn-outline" @click="resetForm">Send Another Message</button>
+                                <h2>{{ translateLanguage('contact.message_received') }}</h2>
+                                <p>{{ translateLanguage('contact.thanks') }}</p>
+                                <button class="btn btn-outline" @click="resetForm">{{ translateLanguage('contact.send_another') }}</button>
                             </div>
                         </div>
                         
-                        <form v-else @submit.prevent="handleSubmit" ref="formRef">
-                            <h2>Send a Message</h2>
+                        <form v-else ref="formRef" @submit.prevent="handleSubmit">
+                            <h2>{{ translateLanguage('contact.send_message') }}</h2>
                             
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Name</label>
+                                    <label>{{ translateLanguage('contact.name') }}</label>
                                     <input v-model="form.name" type="text" required class="input-field" placeholder="John Doe">
                                 </div>
                                 <div class="form-group">
-                                    <label>Email</label>
+                                    <label>{{ translateLanguage('common.email') }}</label>
                                     <input v-model="form.email" type="email" required class="input-field" placeholder="john@example.com">
                                 </div>
                             </div>
                             
                             <div class="form-group">
-                                <label>Subject</label>
+                                <label>{{ translateLanguage('contact.subject') }}</label>
                                 <select v-model="form.subject" required class="input-field select-field">
-                                    <option value="" disabled selected>Select a topic</option>
-                                    <option value="sales">Sales Inquiry</option>
-                                    <option value="support">Technical Support</option>
-                                    <option value="partnership">Partnership</option>
-                                    <option value="other">Other</option>
+                                    <option value="" disabled selected>{{ translateLanguage('contact.topic_placeholder') }}</option>
+                                    <option value="sales">{{ translateLanguage('contact.topic_sales') }}</option>
+                                    <option value="support">{{ translateLanguage('contact.topic_support') }}</option>
+                                    <option value="partnership">{{ translateLanguage('contact.topic_partnership') }}</option>
+                                    <option value="other">{{ translateLanguage('contact.topic_other') }}</option>
                                 </select>
                             </div>
                             
                             <div class="form-group">
-                                <label>Message</label>
-                                <textarea v-model="form.message" rows="5" required class="input-field" placeholder="How can we help you today?"></textarea>
+                                <label>{{ translateLanguage('contact.message') }}</label>
+                                <textarea v-model="form.message" rows="5" required class="input-field" :placeholder="translateLanguage('contact.message_placeholder')"></textarea>
                             </div>
                             
                             <button type="submit" class="btn btn-primary btn-block" :disabled="isSubmitting">
                                 <span v-if="isSubmitting" class="loading-spinner"></span>
-                                {{ isSubmitting ? 'Sending...' : 'Send Message' }}
+                                {{ isSubmitting ? translateLanguage('contact.sending') : translateLanguage('contact.send_btn') }}
                             </button>
                         </form>
                     </div>

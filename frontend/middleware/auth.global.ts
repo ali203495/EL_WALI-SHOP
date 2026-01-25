@@ -1,4 +1,4 @@
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware(async (to, _from) => {
     const auth = useAuthStore()
 
     // 1. Define protected routes (Admin & Account)
@@ -13,9 +13,16 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
     // 3. Specific Admin Security Check
     if (to.path.startsWith('/admin')) {
-        const allowedUsers = ['admin', 'Abdelaali']
-        // If logged in but not an admin -> Redirect to Home
-        if (auth.isAuthenticated && (!auth.user?.username || !allowedUsers.includes(auth.user.username))) {
+        // If logged in but user info not fetched yet -> Wait for it
+        if (auth.isAuthenticated && !auth.user) {
+            await auth.fetchUser()
+        }
+
+        const allowedUsers = ['admin', 'abdelaali']
+        const username = auth.user?.username?.toLowerCase()
+
+        // If logged in but not an authorized admin -> Redirect to Home
+        if (auth.isAuthenticated && (!username || !allowedUsers.includes(username))) {
             return navigateTo('/')
         }
     }

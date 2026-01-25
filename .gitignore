@@ -25,7 +25,7 @@ yarn-error.log*
 *.db
 *.sqlite3
 backend/pos.db
-backend/migrations/versions/
+# backend/migrations/versions/
 
 # IDEs
 .vscode/

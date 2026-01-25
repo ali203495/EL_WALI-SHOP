@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { useLanguage } from '../composables/useLanguage'
 const { logout } = useAuthStore()
+const { translateLanguage } = useLanguage()
 const route = useRoute()
 
 const links = [
-    { name: 'لوحة التحكم', path: '/account', icon: '📊' },
-    { name: 'طلباتي', path: '/account/orders', icon: '🛍️' },
-    { name: 'الإعدادات', path: '/account/settings', icon: '⚙️' },
+    { name: translateLanguage('nav.admin_portal'), path: '/account', icon: '📊' },
+    { name: translateLanguage('nav.orders') || 'Orders', path: '/account/orders', icon: '🛍️' },
+    { name: translateLanguage('account.account_settings') || 'Settings', path: '/account/settings', icon: '⚙️' },
 ]
 
 const handleLogout = () => {
@@ -15,13 +17,13 @@ const handleLogout = () => {
 </script>
 
 <template>
-    <div class="account-layout" dir="rtl">
+    <div class="account-layout">
         <Nav /> <!-- Main site nav -->
         
         <div class="container account-container">
             <aside class="account-sidebar">
                 <div class="sidebar-header">
-                    <h3>حسابي</h3>
+                    <h3>{{ translateLanguage('account.my_account') }}</h3>
                 </div>
                 <nav class="sidebar-nav">
                     <NuxtLink 
@@ -37,7 +39,7 @@ const handleLogout = () => {
                     
                     <button class="nav-item logout" @click="handleLogout">
                         <span class="icon">🚪</span>
-                        تسجيل الخروج
+                        {{ translateLanguage('account.logout') }}
                     </button>
                 </nav>
             </aside>

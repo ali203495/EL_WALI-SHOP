@@ -12,7 +12,7 @@ import shutil
 import os
 import uuid
 
-from database import get_db, engine, Base
+from database import get_db, engine, Base, SessionLocal
 from models import User, Brand, StoreLocation, Category, Product, Order, OrderItem, Wishlist, SiteSetting
 from schemas import (
     UserCreate, UserResponse, Token, UserPasswordUpdate, UserUpdate, UserLogin,
@@ -33,6 +33,23 @@ async def lifespan(app: FastAPI):
     # Startup: create tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    
+    # Check for admin
+    async with SessionLocal() as db:
+        result = await db.execute(select(User).limit(1))
+        if not result.scalars().first():
+            print("🌱 No users found. Creating default admin...")
+            admin = User(
+                username="admin", 
+                hashed_password=get_password_hash("admin1234"), 
+                is_admin=True, 
+                is_super_admin=True,
+                email="admin@example.com"
+            )
+            db.add(admin)
+            await db.commit()
+            print("✅ Default admin created: admin / admin1234")
+            
     yield
 
 app = FastAPI(title="POS & Admin API", version="1.0.0", lifespan=lifespan)
@@ -48,12 +65,14 @@ origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:3001",
-    "http://192.168.240.1:3000",
-    "http://192.168.240.1:3001",
     "https://ali203495.github.io", # GitHub Pages
-    "https://elwali-shop.is-a.dev", # Future Custom Domain
-    "*", # Allow all for development testing across LAN
+    "https://maison-frontend.onrender.com", # Render Frontend
 ]
+
+# Add custom domains from environment variable
+env_origins = os.getenv("ALLOWED_ORIGINS", "")
+if env_origins:
+    origins.extend([origin.strip() for origin in env_origins.split(",") if origin.strip()])
 
 app.add_middleware(
     CORSMiddleware,
@@ -61,7 +80,15 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_origin_regex="https?://.*\.onrender\.com", # Allow any onrender subdomains
 )
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    origin = request.headers.get("origin")
+    print(f"DEBUG: Incoming {request.method} {request.url} from origin: {origin}")
+    response = await call_next(request)
+    return response
 
 from services.storage import StorageService
 
@@ -75,15 +102,27 @@ async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: AsyncSession = Depends(get_db)
 ):
+    print(f"DEBUG LOGIN: Attempt for username='{form_data.username}'")
     result = await db.execute(select(User).where(User.username == form_data.username))
     user = result.scalars().first()
     
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    if not user:
+        print(f"DEBUG LOGIN: User '{form_data.username}' NOT FOUND")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+        
+    if not verify_password(form_data.password, user.hashed_password):
+        print(f"DEBUG LOGIN: Password mismatch for user '{form_data.username}'")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        
+    print(f"DEBUG LOGIN: Success for user '{form_data.username}'")
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires

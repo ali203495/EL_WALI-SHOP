@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { translateLanguage } = useLanguage()
 interface ProductForm {
     id?: number
     name: string
@@ -60,32 +61,32 @@ const handleFileUpload = async (event: Event) => {
 </script>
 
 <template>
-    <form @submit.prevent="handleSubmit" class="product-form" dir="rtl">
+    <form @submit.prevent="handleSubmit" class="product-form">
         <div class="form-grid">
             <div class="form-group full-width">
-                <label>اسم المنتج *</label>
+                <label>{{ translateLanguage('admin.name') }} *</label>
                 <input v-model="form.name" type="text" required class="input-field">
             </div>
             
             <div class="form-group full-width">
-                <label>الوصف</label>
+                <label>{{ translateLanguage('admin.description') }}</label>
                 <textarea v-model="form.description" rows="3" class="input-field"></textarea>
             </div>
             
             <div class="form-group">
-                <label>السعر *</label>
+                <label>{{ translateLanguage('admin.price') }} *</label>
                 <input v-model="form.price" type="number" min="0" step="0.01" required class="input-field">
             </div>
             
             <div class="form-group">
-                <label>المخزون *</label>
+                <label>{{ translateLanguage('admin.stock') }} *</label>
                 <input v-model="form.stock" type="number" min="0" required class="input-field">
             </div>
             
             <div class="form-group">
-                <label>الفئة</label>
+                <label>{{ translateLanguage('admin.category') }}</label>
                 <select v-model="form.category_id" class="input-field">
-                    <option :value="null">اختر الفئة</option>
+                    <option :value="null">{{ translateLanguage('admin.select_category') }}</option>
                     <option v-for="cat in categories" :key="cat.id" :value="cat.id">
                         {{ cat.name }}
                     </option>
@@ -93,9 +94,9 @@ const handleFileUpload = async (event: Event) => {
             </div>
             
             <div class="form-group">
-                <label>الماركة</label>
+                <label>{{ translateLanguage('admin.brand') }}</label>
                 <select v-model="form.brand_id" class="input-field">
-                    <option :value="null">اختر الماركة</option>
+                    <option :value="null">{{ translateLanguage('admin.select_brand') }}</option>
                     <option v-for="brand in brands" :key="brand.id" :value="brand.id">
                         {{ brand.name }}
                     </option>
@@ -103,7 +104,7 @@ const handleFileUpload = async (event: Event) => {
             </div>
             
             <div class="form-group full-width">
-                <label>صورة المنتج</label>
+                <label>{{ translateLanguage('admin.image') }}</label>
                 
                 <div class="image-input-type">
                     <button type="button" 
@@ -111,24 +112,24 @@ const handleFileUpload = async (event: Event) => {
                         :class="{ active: imageType === 'url' }"
                         @click="imageType = 'url'"
                     >
-                        رابط خارجي
+                        {{ translateLanguage('admin.image_url') }}
                     </button>
                     <button type="button" 
                         class="type-btn" 
                         :class="{ active: imageType === 'upload' }"
                         @click="imageType = 'upload'"
                     >
-                        رفع صورة
+                        {{ translateLanguage('admin.upload_image') }}
                     </button>
                 </div>
 
                 <div v-if="imageType === 'url'" class="mt-2">
-                    <input v-model="form.image_url" type="url" placeholder="https://..." class="input-field" style="direction: ltr; text-align: left;">
+                    <input v-model="form.image_url" type="url" placeholder="https://..." class="input-field" :style="{ direction: translateLanguage('common.direction') === 'rtl' ? 'rtl' : 'ltr', textAlign: 'left' }">
                 </div>
 
                 <div v-else class="mt-2 upload-container">
                     <input type="file" ref="fileInput" @change="handleFileUpload" accept="image/*" class="file-input">
-                    <div v-if="uploading" class="upload-status">جاري الرفع...</div>
+                    <div v-if="uploading" class="upload-status">{{ translateLanguage('admin.uploading') }}</div>
                     <div v-if="form.image_url && imageType === 'upload'" class="preview">
                         <img :src="form.image_url" alt="Preview">
                     </div>
@@ -137,9 +138,9 @@ const handleFileUpload = async (event: Event) => {
         </div>
         
         <div class="form-actions">
-            <button type="button" class="btn btn-outline" @click="emit('cancel')">إلغاء</button>
+            <button type="button" class="btn btn-outline" @click="emit('cancel')">{{ translateLanguage('admin.cancel') }}</button>
             <button type="submit" class="btn btn-primary">
-                {{ isEdit ? 'تحديث المنتج' : 'إضافة المنتج' }}
+                {{ isEdit ? translateLanguage('admin.update_product') : translateLanguage('admin.add_product') }}
             </button>
         </div>
     </form>

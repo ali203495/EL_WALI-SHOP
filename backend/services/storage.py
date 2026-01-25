@@ -64,4 +64,9 @@ class StorageService:
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
-        return f"{base_url}/static/{unique_filename}"
+        if not base_url or "localhost" in base_url and not USE_CLOUD:
+            # If no base_url provided or still pointing to localhost in production, 
+            # we might want to return a relative path or try to get the real URL
+            pass
+
+        return f"{base_url.rstrip('/')}/static/{unique_filename}"

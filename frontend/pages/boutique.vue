@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import gsap from 'gsap'
+import { gsap } from 'gsap'
+
+const { translateLanguage } = useLanguage()
 
 useHead({
-    title: 'Flagship Boutique',
+    title: translateLanguage('boutique.title'),
     meta: [
-        { name: 'description', content: 'Visit our flagship boutique in Dubai. Experience luxury service and exclusive jewelry collections.' }
+        { name: 'description', content: translateLanguage('boutique.meta_desc') }
     ]
 })
 
@@ -50,9 +52,9 @@ onMounted(() => {
         <section class="boutique-hero">
             <div class="hero-bg"></div>
             <div class="container boutique-hero-content">
-                <span class="eyebrow">The Experience</span>
-                <h1>Our Flagship Boutique</h1>
-                <p>Immerse yourself in a world of refined luxury at our Dubai showroom.</p>
+                <span class="eyebrow">{{ translateLanguage('boutique.experience') }}</span>
+                <h1>{{ translateLanguage('boutique.hero_title') }}</h1>
+                <p>{{ translateLanguage('boutique.hero_subtitle') }}</p>
             </div>
         </section>
 
@@ -63,7 +65,7 @@ onMounted(() => {
                     <!-- Left: Info -->
                     <div class="info-column">
                         <div class="info-block">
-                            <h3>Visit Us</h3>
+                            <h3>{{ translateLanguage('boutique.visit_us') }}</h3>
                             <address>
                                 <strong>{{ boutique.name }}</strong><br>
                                 {{ boutique.address }}<br>
@@ -71,46 +73,43 @@ onMounted(() => {
                             </address>
                             <div class="contact-actions">
                                 <a :href="`https://www.google.com/maps/search/?api=1&query=${boutique.coords.lat},${boutique.coords.lng}`" target="_blank" class="btn btn-primary">
-                                    Get Directions
+                                    {{ translateLanguage('boutique.get_directions') }}
                                 </a>
                                 <a :href="`tel:${boutique.phone}`" class="btn btn-outline">
-                                    Call Boutique
+                                    {{ translateLanguage('boutique.call') }}
                                 </a>
                             </div>
                         </div>
 
                         <div class="info-block">
-                            <h3>Opening Hours</h3>
+                            <h3>{{ translateLanguage('boutique.hours') }}</h3>
                             <ul class="hours-list">
                                 <li>
-                                    <span>Mon - Fri</span>
+                                    <span>{{ translateLanguage('boutique.mon_fri') }}</span>
                                     <span>{{ boutique.hours.weekdays }}</span>
                                 </li>
                                 <li>
-                                    <span>Sat - Sun</span>
+                                    <span>{{ translateLanguage('boutique.sat_sun') }}</span>
                                     <span>{{ boutique.hours.weekends }}</span>
                                 </li>
                             </ul>
                         </div>
 
                         <div class="info-block">
-                            <h3>Private Appointments</h3>
-                            <p>For a personalized experience, book a private viewing with our senior jewelry consultants.</p>
-                            <NuxtLink to="/contact" class="book-link">Book an Appointment →</NuxtLink>
+                            <h3>{{ translateLanguage('boutique.appointments') }}</h3>
+                            <p>{{ translateLanguage('boutique.appointments_desc') }}</p>
+                            <NuxtLink to="/contact" class="book-link">{{ translateLanguage('boutique.book') }} →</NuxtLink>
                         </div>
                     </div>
 
                     <!-- Right: Visual/Map -->
                     <div class="visual-column">
                         <div class="image-showcase">
-                            <div class="placeholder-image main-image">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="color: #ccc;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                            </div>
-                            <!-- <img src="..." alt="Boutique Interior"> -->
+                            <img src="/images/boutique-interior.png" alt="Maison El Wali Boutique Interior" class="full-image animate-fadeIn">
                         </div>
                         <div class="map-preview">
                             <div class="map-placeholder">
-                                <span>📍 Map View</span>
+                                <span>📍 {{ translateLanguage('boutique.map_view') }}</span>
                             </div>
                         </div>
                     </div>
@@ -121,22 +120,22 @@ onMounted(() => {
         <!-- Services -->
         <section class="services-section">
             <div class="container">
-                <h2 class="text-center">Boutique Services</h2>
+                <h2 class="text-center">{{ translateLanguage('boutique.services') }}</h2>
                 <div class="services-grid">
                     <div class="service-card">
                         <span class="icon">💎</span>
-                        <h4>Custom Design</h4>
-                        <p>Work with our artisans to create a one-of-a-kind piece.</p>
+                        <h4>{{ translateLanguage('boutique.custom_design') }}</h4>
+                        <p>{{ translateLanguage('boutique.custom_desc') }}</p>
                     </div>
                     <div class="service-card">
                         <span class="icon">✨</span>
-                        <h4>Jewelry Spa</h4>
-                        <p>Professional cleaning and restoration for your precious items.</p>
+                        <h4>{{ translateLanguage('boutique.spa') }}</h4>
+                        <p>{{ translateLanguage('boutique.spa_desc') }}</p>
                     </div>
                     <div class="service-card">
                         <span class="icon">🥂</span>
-                        <h4>VIP Lounge</h4>
-                        <p>Enjoy refreshments in our private viewing suites.</p>
+                        <h4>{{ translateLanguage('boutique.vip') }}</h4>
+                        <p>{{ translateLanguage('boutique.vip_desc') }}</p>
                     </div>
                 </div>
             </div>
@@ -279,15 +278,15 @@ onMounted(() => {
     overflow: hidden;
 }
 
-.placeholder-image {
+.full-image {
     width: 100%;
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #e2e8f0;
-    color: #64748b;
-    font-size: 1.5rem;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.full-image:hover {
+    transform: scale(1.05);
 }
 
 .map-preview {

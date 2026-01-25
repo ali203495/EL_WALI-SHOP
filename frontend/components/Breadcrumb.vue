@@ -12,7 +12,7 @@ defineProps<{
 <template>
     <nav class="breadcrumb">
         <template v-for="(item, index) in items" :key="index">
-            <NuxtLink v-if="item.to" :to="item.to" class="breadcrumb-link">
+            <NuxtLink v-if="item.to && typeof item.to === 'string'" :to="item.to" class="breadcrumb-link">
                 {{ item.label }}
             </NuxtLink>
             <span v-else class="breadcrumb-current">{{ item.label }}</span>

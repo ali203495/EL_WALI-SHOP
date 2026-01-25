@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { translateLanguage, locale } = useLanguage()
 const api = useApi()
 
 definePageMeta({
@@ -6,47 +7,84 @@ definePageMeta({
     middleware: ['auth']
 })
 
-const { data: orders, pending } = await api.getOrders()
+const orders = ref<any[]>([])
+const loading = ref(true)
+const error = ref<any>(null)
+
+const fetchData = async () => {
+    loading.value = true
+    error.value = null
+    try {
+        const { data, error: apiError } = await api.getOrders()
+        if (apiError.value) {
+            error.value = apiError.value
+            return
+        }
+        orders.value = data.value || []
+    } catch (e) {
+        error.value = e
+    } finally {
+        loading.value = false
+    }
+}
+
+const handleRetry = () => {
+    fetchData()
+}
+
+onMounted(() => {
+    fetchData()
+})
 </script>
 
 <template>
     <div class="orders-page">
         <header class="section-header">
-            <h1>سجل الطلبات</h1>
+            <h1>{{ translateLanguage('account.order_history') }}</h1>
         </header>
 
-        <div v-if="pending" class="loading">
-            جاري التحميل...
-        </div>
+        <PageLoading v-if="loading" :message="translateLanguage('account.loading')" />
 
-        <div v-else-if="orders && orders.length > 0" class="orders-table-container">
+        <ErrorState 
+            v-else-if="error"
+            :title="translateLanguage('admin.failed_load')"
+            :description="translateLanguage('common.error_desc')"
+            :retryable="true"
+            @retry="handleRetry"
+        >
+            <template #footer>
+                <div class="error-details">
+                    {{ error.message || error.statusText || error }}
+                </div>
+            </template>
+        </ErrorState>
+
+        <div v-else-if="orders.length > 0" class="orders-table-container">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>رقم الطلب</th>
-                        <th>التاريخ</th>
-                        <th>الحالة</th>
-                        <th>الإجمالي</th>
-                        <!-- <th>الإجراءات</th> -->
+                        <th>{{ translateLanguage('account.order_id') }}</th>
+                        <th>{{ translateLanguage('account.date') }}</th>
+                        <th>{{ translateLanguage('account.status') }}</th>
+                        <th>{{ translateLanguage('account.total') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="order in orders" :key="order.id">
                         <td class="font-mono">#{{ order.id }}</td>
-                        <td>{{ new Date(order.created_at || '').toLocaleDateString('ar-SA') }}</td>
+                        <td>{{ new Date(order.created_at || '').toLocaleDateString(locale === 'ar' ? 'ar-SA' : locale === 'fr' ? 'fr-FR' : 'en-US') }}</td>
                         <td>
                             <span class="status-badge" :class="order.status">{{ order.status }}</span>
                         </td>
-                        <td class="font-bold">{{ order.total_amount?.toLocaleString() }} ريال</td>
-                        <!-- <td><button class="btn-text">عرض التفاصيل</button></td> -->
+                        <td class="font-bold">{{ order.total_amount?.toLocaleString() }} {{ translateLanguage('common.currency') }}</td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
         <div v-else class="empty-state">
-            <p>لا توجد طلبات سابقة.</p>
-            <NuxtLink to="/catalog" class="btn btn-primary mt-4">تسوق الآن</NuxtLink>
+            <p>{{ translateLanguage('account.no_previous_orders') }}</p>
+            <NuxtLink to="/catalog" class="btn btn-primary mt-4">{{ translateLanguage('account.shop_now') }}</NuxtLink>
         </div>
     </div>
 </template>
@@ -69,7 +107,7 @@ const { data: orders, pending } = await api.getOrders()
 .data-table th,
 .data-table td {
     padding: 1rem;
-    text-align: right;
+    text-align: left;
     border-bottom: 1px solid var(--border);
 }
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { translateLanguage } = useLanguage()
 const auth = useAuthStore()
 const api = useApi()
 const toast = useToast()
@@ -31,9 +32,9 @@ const handleUpdate = async () => {
         
         // Update local store
         auth.user = { ...auth.user, ...updated }
-        toast.success('تم تحديث البيانات بنجاح')
+        toast.success(translateLanguage('account.save_success'))
     } catch (e) {
-        toast.error('حدث خطأ أثناء التحديث')
+        toast.error(translateLanguage('account.save_failed'))
     } finally {
         loading.value = false
     }
@@ -43,29 +44,29 @@ const handleUpdate = async () => {
 <template>
     <div class="settings-page">
         <header class="section-header">
-            <h1>إعدادات الحساب</h1>
+            <h1>{{ translateLanguage('account.account_settings') }}</h1>
         </header>
 
-        <form @submit.prevent="handleUpdate" class="settings-form">
+        <form class="settings-form" @submit.prevent="handleUpdate">
             <div class="form-row">
                 <div class="form-group">
-                    <label>الاسم الأول</label>
+                    <label>{{ translateLanguage('account.first_name') }}</label>
                     <input v-model="form.first_name" type="text" class="input-field" required>
                 </div>
                 <div class="form-group">
-                    <label>اسم العائلة</label>
+                    <label>{{ translateLanguage('account.last_name') }}</label>
                     <input v-model="form.last_name" type="text" class="input-field" required>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>البريد الإلكتروني</label>
+                <label>{{ translateLanguage('common.email') }}</label>
                 <input v-model="form.email" type="email" class="input-field" required dir="ltr">
             </div>
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary" :disabled="loading">
-                    {{ loading ? 'جاري الحفظ...' : 'حفظ التغييرات' }}
+                    {{ loading ? translateLanguage('account.saving') : translateLanguage('account.save_changes') }}
                 </button>
             </div>
         </form>

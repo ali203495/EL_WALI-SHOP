@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import gsap from 'gsap'
+import { gsap } from 'gsap'
+
+const { translateLanguage } = useLanguage()
 
 onMounted(() => {
     // Initial entrance animations
@@ -47,12 +49,12 @@ onMounted(() => {
 })
 
 useHead({
-    title: 'Page Not Found | LUXE.TECH'
+    title: `${translateLanguage('common.page_not_found')} | Maison El Wali`
 })
 </script>
 
 <template>
-    <div class="error-page">
+    <div class="error-page" :dir="translateLanguage('common.currency') === 'AED' ? 'rtl' : 'ltr'">
         <!-- Background Elements -->
         <div class="bg-blob blob-1"></div>
         <div class="bg-blob blob-2"></div>
@@ -61,22 +63,20 @@ useHead({
         <div class="glass-container">
             <div class="content-wrapper">
                 <span class="error-code">404</span>
-                <h1 class="error-title">Page Not Found</h1>
-                <p class="error-desc">
-                    The digital artifact you are looking for has been moved or does not exist in this dimension.
-                </p>
+                <h1 class="error-title">{{ translateLanguage('common.page_not_found') }}</h1>
+                <p class="error-desc">{{ translateLanguage('common.page_not_found_desc') }}</p>
                 
                 <div class="actions">
                     <NuxtLink to="/" class="action-btn btn-primary">
                         <span class="btn-icon">🏠</span>
-                        Return Home
+                        {{ translateLanguage('common.go_home') }}
                     </NuxtLink>
                     <NuxtLink to="/catalog" class="action-btn btn-outline">
                         <span class="btn-icon">🔍</span>
-                        Browse Catalog
+                        {{ translateLanguage('search.browse') }}
                     </NuxtLink>
                     <NuxtLink to="/contact" class="action-btn btn-text">
-                        Report Issue
+                        {{ translateLanguage('common.report_issue') }}
                     </NuxtLink>
                 </div>
             </div>

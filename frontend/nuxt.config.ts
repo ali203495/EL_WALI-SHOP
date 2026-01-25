@@ -9,10 +9,11 @@ export default defineNuxtConfig({
     modules: [
         '@pinia/nuxt',
         '@nuxtjs/sitemap',
-        '@nuxtjs/robots'
+        '@nuxtjs/robots',
+        '@nuxtjs/seo'
     ],
     site: {
-        url: process.env.NUXT_PUBLIC_SITE_URL || 'https://ali203495.github.io/EL_WALI-SHOP',
+        url: process.env.NUXT_PUBLIC_SITE_URL || 'https://ali203495.github.io',
         name: 'Maison El Wali'
     },
     sitemap: {
@@ -22,7 +23,7 @@ export default defineNuxtConfig({
         '~/assets/css/main.css'
     ],
     app: {
-        baseURL: '/',
+        baseURL: '/EL_WALI-SHOP/',
         head: {
             title: 'MAISON EL WALI - Luxury Gold & Jewelry',
             titleTemplate: '%s | MAISON EL WALI',
@@ -53,6 +54,17 @@ export default defineNuxtConfig({
             }
         }
     },
+    routeRules: {
+        '/**': {
+            headers: {
+                'X-Content-Type-Options': 'nosniff',
+                'X-Frame-Options': 'DENY',
+                'X-XSS-Protection': '1; mode=block',
+                'Referrer-Policy': 'strict-origin-when-cross-origin',
+                'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
+            }
+        }
+    },
     devServer: {
         host: '0.0.0.0',
         port: 3000
@@ -71,8 +83,13 @@ export default defineNuxtConfig({
     },
     runtimeConfig: {
         public: {
+            // Default to local for dev, but this should be overridden by NUXT_PUBLIC_API_BASE during 'npm run generate'
             apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000',
             facebookPixelId: process.env.NUXT_PUBLIC_FACEBOOK_PIXEL_ID || ''
         }
-    }
+    },
+    robots: {
+        enabled: false // Disable generation due to conflict with base URL /EL_WALI-SHOP/
+    },
+    ogImage: { enabled: false }
 })

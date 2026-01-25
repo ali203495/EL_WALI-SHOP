@@ -1,9 +1,12 @@
-import type { Product, Brand, Category, StoreLocation, Order, OrderCreate, TokenResponse, User, SiteSetting } from '~/types'
+import type { Product, Brand, Category, StoreLocation, Order, OrderCreate, TokenResponse, User } from '~/types'
 
 export const useApi = () => {
     const config = useRuntimeConfig()
-    // Use direct backend URL on server to support prerendering, strictly use /api on client
-    const baseUrl = import.meta.server ? 'http://localhost:8000' : config.public.apiBase
+    // Prioritize runtime config apiBase, fallback to localhost for local dev/prerender if not set
+    const baseUrl = config.public.apiBase || 'http://localhost:8000'
+
+    const ping = () => $fetch(`${baseUrl}/`, { method: 'GET' })
+
 
     // Catalog
     const getProducts = () => useFetch<Product[]>(`${baseUrl}/products/`)
@@ -52,8 +55,8 @@ export const useApi = () => {
 
     // Categories
     const getCategories = () => useFetch<Category[]>(`${baseUrl}/categories/`, {
-        onResponseError({ response }) {
-            console.warn('Failed to fetch categories:', response.statusText)
+        onResponseError({ response: _response }) {
+            // console.warn('Failed to fetch categories:', _response.statusText)
         }
     })
 
@@ -78,7 +81,7 @@ export const useApi = () => {
     const getStores = () => useFetch<StoreLocation[]>(`${baseUrl}/stores/`)
     const createStore = (data: any) => {
         const auth = useAuthStore()
-        return $fetch<StoreLocation>(`${baseUrl}/stores/`, { // Check backend: it has read_stores but maybe not create?
+        return $fetch<StoreLocation>(`${baseUrl}/stores/`, {
             method: 'POST',
             body: data,
             headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : undefined
@@ -95,7 +98,7 @@ export const useApi = () => {
 
     // Orders
     const getOrders = () => useFetch<Order[]>(`${baseUrl}/orders/`)
-    const createOrder = async (order: OrderCreate): Promise<Order> => {
+    const createOrder = (order: OrderCreate): Promise<Order> => {
         return $fetch<Order>(`${baseUrl}/orders/`, {
             method: 'POST',
             body: order,
@@ -103,7 +106,7 @@ export const useApi = () => {
     }
 
     // Auth
-    const login = async (username: string, password: string): Promise<TokenResponse> => {
+    const login = (username: string, password: string): Promise<TokenResponse> => {
         const formData = new FormData()
         formData.append('username', username)
         formData.append('password', password)
@@ -166,9 +169,9 @@ export const useApi = () => {
 
     // Settings (CMS)
     const getSettings = () => useFetch<any[]>(`${baseUrl}/settings/`, {
-        onResponseError({ response }) {
+        onResponseError({ response: _response }) {
             // Suppress errors during build/prerender to prevent build failure
-            console.warn('Failed to fetch settings:', response.statusText)
+            // console.warn('Failed to fetch settings:', _response.statusText)
         }
     })
     const updateSettings = (settings: { key: string, value: string }[]) => $fetch<any[]>(`${baseUrl}/settings/`, {
@@ -238,6 +241,8 @@ export const useApi = () => {
         deleteStore,
         addToWishlistApi,
         removeFromWishlistApi,
+        verifyPassword,
+        verifySuperCredentials,
         uploadImage: async (file: File) => {
             const formData = new FormData()
             formData.append('file', file)
@@ -246,6 +251,7 @@ export const useApi = () => {
                 body: formData
             })
             return result.url
-        }
+        },
+        ping
     }
 }

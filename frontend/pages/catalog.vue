@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import gsap from 'gsap'
+import { gsap } from 'gsap'
 
 const api = useApi()
 
 // Fetch all data with loading and error handling
-const [
-    { data: products, pending: productsLoading, error: productsError, refresh: refreshProducts },
-    { data: categories },
-    { data: brands }
-] = await Promise.all([
+const res = await Promise.all([
     api.getProducts(),
     api.getCategories(),
     api.getBrands()
 ])
+
+const { data: products, pending: productsLoading, error: productsError, refresh: refreshProducts } = res[0]
+const { data: categories, error: categoriesError } = res[1]
+const { data: brands, error: brandsError } = res[2]
+
+const globalError = computed(() => productsError.value || categoriesError.value || brandsError.value)
 
 // Filters
 const searchQuery = ref('')
@@ -73,6 +75,10 @@ const handleRetry = () => {
 }
 
 onMounted(() => {
+    if (productsError.value) {
+        // console.error('Products Error:', productsError.value)
+    }
+
     if (!productsLoading.value && !productsError.value) {
         gsap.from('.product-card', {
             y: 30,
@@ -84,9 +90,13 @@ onMounted(() => {
     }
 })
 
+const auth = useAuthStore()
+const isAdmin = computed(() => auth.user?.is_admin || auth.user?.is_super_admin)
+const { translateLanguage } = useLanguage()
+
 // SEO
 useHead({
-    title: 'Product Catalog'
+    title: translateLanguage('catalog.title')
 })
 
 const showQuickView = ref(false)
@@ -101,30 +111,36 @@ const openQuickView = (product: any) => {
 <template>
     <div class="catalog-page">
         <!-- Loading State -->
-        <PageLoading v-if="productsLoading" message="Loading products..." />
+        <PageLoading v-if="productsLoading" :message="translateLanguage('catalog.loading')" />
         
         <!-- Error State -->
         <ErrorState 
-            v-else-if="productsError"
+            v-else-if="globalError"
             icon="❌"
-            title="Failed to load products"
-            description="We couldn't load the product catalog. Please check your connection and try again."
+            :title="translateLanguage('catalog.failed')"
+            :description="translateLanguage('catalog.error_desc')"
             :retryable="true"
             @retry="handleRetry"
-        />
+        >
+            <template #footer>
+                <div class="error-details">
+                    {{ globalError.message || globalError.statusText || globalError }}
+                </div>
+            </template>
+        </ErrorState>
         
         <!-- Content -->
         <template v-else>
             <!-- Sidebar Filters -->
             <aside class="filter-sidebar">
                 <div class="filter-header">
-                    <h3>Filters</h3>
-                    <button @click="clearFilters" class="clear-btn">Clear All</button>
+                    <h3>{{ translateLanguage('catalog.filters') }}</h3>
+                    <button class="clear-btn" @click="clearFilters">{{ translateLanguage('catalog.clear_all') }}</button>
                 </div>
                 
                 <!-- Categories -->
                 <div class="filter-section">
-                    <h4>Categories</h4>
+                    <h4>{{ translateLanguage('catalog.categories') }}</h4>
                     <ul class="filter-list">
                         <li 
                             v-for="cat in categories" 
@@ -139,7 +155,7 @@ const openQuickView = (product: any) => {
                 
                 <!-- Brands -->
                 <div class="filter-section">
-                    <h4>Brands</h4>
+                    <h4>{{ translateLanguage('catalog.brands') }}</h4>
                     <ul class="filter-list">
                         <li 
                             v-for="brand in brands" 
@@ -151,27 +167,40 @@ const openQuickView = (product: any) => {
                         </li>
                     </ul>
                 </div>
+
+                <!-- Admin Quick Links -->
+                <div v-if="isAdmin" class="filter-section admin-section">
+                    <h4>💎 {{ translateLanguage('catalog.quick_actions') }}</h4>
+                    <ul class="filter-list">
+                        <li>
+                            <NuxtLink to="/admin/categories">📂 {{ translateLanguage('catalog.edit_categories') }}</NuxtLink>
+                        </li>
+                        <li>
+                            <NuxtLink to="/admin/brands">🏷️ {{ translateLanguage('catalog.edit_brands') }}</NuxtLink>
+                        </li>
+                    </ul>
+                </div>
             </aside>
             
             <!-- Main Content -->
             <main class="catalog-content">
                 <header class="catalog-header">
                     <div class="header-left">
-                        <h1>Catalog</h1>
-                        <span class="product-count">{{ filteredProducts.length }} products</span>
+                        <h1>{{ translateLanguage('catalog.title') }}</h1>
+                        <span class="product-count">{{ filteredProducts.length }} {{ translateLanguage('catalog.count_plural') }}</span>
                     </div>
                     <div class="header-controls">
                         <input 
                             v-model="searchQuery" 
                             type="text" 
-                            placeholder="Search products..." 
+                            :placeholder="translateLanguage('catalog.search_placeholder')" 
                             class="input-field search-input"
                         >
                         <select v-model="sortBy" class="input-field sort-select">
-                            <option value="featured">Featured</option>
-                            <option value="price-low">Price: Low to High</option>
-                            <option value="price-high">Price: High to Low</option>
-                            <option value="rating">Highest Rated</option>
+                            <option value="featured">{{ translateLanguage('catalog.sort_featured') }}</option>
+                            <option value="price-low">{{ translateLanguage('catalog.sort_price_low') }}</option>
+                            <option value="price-high">{{ translateLanguage('catalog.sort_price_high') }}</option>
+                            <option value="rating">{{ translateLanguage('catalog.sort_rating') }}</option>
                         </select>
                     </div>
                 </header>
@@ -193,7 +222,7 @@ const openQuickView = (product: any) => {
                         :key="product.id" 
                         :product="product"
                         :show-badge="!!product.rating"
-                        @quickView="openQuickView"
+                        @quick-view="openQuickView"
                     />
                 </div>
                 
@@ -201,21 +230,21 @@ const openQuickView = (product: any) => {
                 <EmptyState 
                     v-if="filteredProducts.length === 0"
                     icon="🔍"
-                    title="No products found"
-                    description="Try adjusting your search or filters"
+                    :title="translateLanguage('catalog.no_found')"
+                    :description="translateLanguage('catalog.no_found_desc')"
                 >
                     <template #actions>
-                        <button @click="clearFilters" class="btn btn-outline">Clear Filters</button>
+                        <button class="btn btn-outline" @click="clearFilters">{{ translateLanguage('catalog.clear_all') }}</button>
                     </template>
                 </EmptyState>
             </main>
         </template>
 
         <ProductQuickView 
+            v-if="quickViewProduct" 
             :is-open="showQuickView" 
             :product="quickViewProduct" 
-            @close="showQuickView = false" 
-            v-if="quickViewProduct"
+            @close="showQuickView = false"
         />
     </div>
 </template>
@@ -286,6 +315,27 @@ const openQuickView = (product: any) => {
 .filter-list li.active {
     background: var(--primary);
     color: white;
+}
+
+.admin-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px dashed var(--border);
+}
+
+.admin-section h4 {
+    color: var(--primary);
+}
+
+.admin-section .filter-list li {
+    padding: 0;
+}
+
+.admin-section .filter-list a {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: inherit;
+    text-decoration: none;
 }
 
 /* Main Content */

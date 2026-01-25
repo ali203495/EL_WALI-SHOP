@@ -8,7 +8,7 @@ defineProps<{
     <div class="page-loading">
         <div class="loading-content">
             <div class="logo-pulse">
-                <span class="logo-text">LUXE<span class="highlight">.TECH</span></span>
+                <span class="logo-text">MAISON <span class="highlight">EL WALI</span></span>
             </div>
             <Spinner size="lg" />
             <p v-if="message">{{ message }}</p>

@@ -18,7 +18,7 @@ if (import.meta.client) {
         try {
             cart.value = JSON.parse(saved)
         } catch (e) {
-            console.error('Failed to parse cart', e)
+            // console.error('Failed to parse cart', e)
         }
     }
 }
@@ -31,15 +31,19 @@ watch(cart, (newCart) => {
 }, { deep: true })
 
 export const useCart = () => {
-    const addToCart = (product: CartItem['product']) => {
+    const addToCart = (product: CartItem['product'], requestedQty: number = 1) => {
         const existing = cart.value.find(item => item.product.id === product.id)
 
         if (existing) {
-            if (existing.quantity < product.stock) {
-                existing.quantity++
+            const newQty = existing.quantity + requestedQty
+            if (newQty <= product.stock) {
+                existing.quantity = newQty
+            } else {
+                existing.quantity = product.stock // Cap at stock
             }
         } else {
-            cart.value.push({ product, quantity: 1 })
+            const quantity = Math.min(requestedQty, product.stock)
+            cart.value.push({ product, quantity })
         }
     }
 

@@ -1,12 +1,36 @@
 <script setup lang="ts">
-import gsap from 'gsap'
+import { gsap } from 'gsap'
+const { translateLanguage } = useLanguage()
 
 definePageMeta({
     layout: 'admin'
 })
 
 const api = useApi()
-const { data: settingsData } = await api.getSettings()
+const settingsData = ref<any>(null)
+const loading = ref(true)
+const error = ref<any>(null)
+
+const fetchData = async () => {
+    loading.value = true
+    error.value = null
+    try {
+        const { data, error: apiError } = await api.getSettings()
+        if (apiError.value) {
+            error.value = apiError.value
+            return
+        }
+        settingsData.value = data.value
+    } catch (e) {
+        error.value = e
+    } finally {
+        loading.value = false
+    }
+}
+
+const handleRetry = () => {
+    fetchData()
+}
 
 // Default structure matching seed data
 const settingsMap = reactive<Record<string, string>>({
@@ -40,19 +64,17 @@ const saveSettings = async () => {
         const payload = Object.entries(settingsMap).map(([key, value]) => ({ key, value }))
         await api.updateSettings(payload)
         const { success } = useToast()
-        success('تم حفظ الإعدادات بنجاح')
+        success(translateLanguage('admin.save_success'))
     } catch (e) {
-        const { error } = useToast()
-        error('فشل حفظ الإعدادات')
-        console.error(e)
+        const { error: toastError } = useToast()
+        toastError(translateLanguage('admin.save_failed'))
     } finally {
         isSaving.value = false
     }
 }
 
-
-
 onMounted(() => {
+    fetchData()
     gsap.from('.settings-card', {
         y: 20,
         opacity: 0,
@@ -63,96 +85,109 @@ onMounted(() => {
 </script>
 
 <template>
-    <div dir="rtl">
-            <header class="page-header">
-                <div>
-                    <h1>الإعدادات</h1>
-                    <p class="subtitle">تكوين تفضيلات متجرك</p>
-                </div>
-                <button class="btn btn-primary" :disabled="isSaving" @click="saveSettings">
-                    {{ isSaving ? 'جاري الحفظ...' : 'حفظ التغييرات' }}
-                </button>
-            </header>
-
-            <div class="settings-grid">
-                <!-- Store Information -->
-                <div class="settings-card">
-                    <h3>معلومات المتجر</h3>
-                    <div class="form-group">
-                        <label>اسم المتجر</label>
-                        <input v-model="settingsMap.store_name" type="text" class="input-field">
-                    </div>
-                    <div class="form-group">
-                        <label>البريد الإلكتروني</label>
-                        <input v-model="settingsMap.contact_email" type="email" class="input-field">
-                    </div>
-                    <div class="form-group">
-                        <label>الهاتف</label>
-                        <input v-model="settingsMap.contact_phone" type="text" class="input-field">
-                    </div>
-                    <div class="form-group">
-                        <label>العنوان</label>
-                        <input v-model="settingsMap.contact_address" type="text" class="input-field">
-                    </div>
-                </div>
-
-                <!-- Home Page Content -->
-                <div class="settings-card">
-                    <h3>عرض الصفحة الرئيسية</h3>
-                    <div class="form-group">
-                        <label>عنوان البانر الرئيسي (HTML مسموح)</label>
-                        <input v-model="settingsMap.hero_title" type="text" class="input-field">
-                    </div>
-                    <div class="form-group">
-                        <label>العنوان الفرعي</label>
-                        <textarea v-model="settingsMap.hero_subtitle" rows="3" class="input-field"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>شارة البانر</label>
-                        <input v-model="settingsMap.hero_badge" type="text" class="input-field">
-                    </div>
-                </div>
-
-                <!-- Theme Customization -->
-                <div class="settings-card">
-                    <h3>تخصيص المظهر</h3>
-                    <div class="form-group">
-                        <label>لون أساسي</label>
-                        <div class="color-picker-wrapper">
-                            <input v-model="settingsMap.theme_primary" type="color" class="color-picker">
-                            <input v-model="settingsMap.theme_primary" type="text" class="input-field">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>لون ثانوي</label>
-                        <div class="color-picker-wrapper">
-                            <input v-model="settingsMap.theme_secondary" type="color" class="color-picker">
-                            <input v-model="settingsMap.theme_secondary" type="text" class="input-field">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>لون التمييز (Accent)</label>
-                        <div class="color-picker-wrapper">
-                            <input v-model="settingsMap.theme_accent" type="color" class="color-picker">
-                            <input v-model="settingsMap.theme_accent" type="text" class="input-field">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>الخط الرئيسي</label>
-                        <select v-model="settingsMap.theme_font_family" class="input-field">
-                            <option value="">افتراضي</option>
-                            <option value="'Tajawal', sans-serif">Tajawal</option>
-                            <option value="'Cairo', sans-serif">Cairo</option>
-                            <option value="'Almarai', sans-serif">Almarai</option>
-                        </select>
-                    </div>
-                </div>
-
-
-
-                <!-- Notifications (Future Feature) -->
-                <!-- <div class="settings-card"> ... </div> -->
+    <div>
+        <header class="page-header">
+            <div>
+                <h1>{{ translateLanguage('admin.settings') }}</h1>
+                <p class="subtitle">{{ translateLanguage('nav.admin_portal') }} / {{ translateLanguage('nav.settings') }}</p>
             </div>
+            <button class="btn btn-primary" :disabled="isSaving || loading" @click="saveSettings">
+                {{ isSaving ? translateLanguage('admin.saving') : translateLanguage('admin.save_changes') }}
+            </button>
+        </header>
+
+        <!-- Loading State -->
+        <PageLoading v-if="loading" :message="translateLanguage('admin.loading_data')" />
+
+        <!-- Error State -->
+        <ErrorState 
+            v-else-if="error"
+            :title="translateLanguage('admin.failed_load')"
+            :description="translateLanguage('common.error_desc')"
+            :retryable="true"
+            @retry="handleRetry"
+        >
+            <template #footer>
+                <div class="error-details">
+                    {{ error.message || error.statusText || error }}
+                </div>
+            </template>
+        </ErrorState>
+
+        <div v-else class="settings-grid">
+            <!-- Store Information -->
+            <div class="settings-card">
+                <h3>{{ translateLanguage('admin.store_info') }}</h3>
+                <div class="form-group">
+                    <label>{{ translateLanguage('admin.name') }}</label>
+                    <input v-model="settingsMap.store_name" type="text" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>{{ translateLanguage('admin.email') }}</label>
+                    <input v-model="settingsMap.contact_email" type="email" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>{{ translateLanguage('admin.phone') }}</label>
+                    <input v-model="settingsMap.contact_phone" type="text" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>{{ translateLanguage('admin.address') }}</label>
+                    <input v-model="settingsMap.contact_address" type="text" class="input-field">
+                </div>
+            </div>
+
+            <!-- Home Page Content -->
+            <div class="settings-card">
+                <h3>{{ translateLanguage('admin.home_page_content') }}</h3>
+                <div class="form-group">
+                    <label>{{ translateLanguage('admin.hero_title_label') }}</label>
+                    <input v-model="settingsMap.hero_title" type="text" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>{{ translateLanguage('admin.hero_subtitle_label') }}</label>
+                    <textarea v-model="settingsMap.hero_subtitle" rows="3" class="input-field"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>{{ translateLanguage('admin.hero_badge_label') }}</label>
+                    <input v-model="settingsMap.hero_badge" type="text" class="input-field">
+                </div>
+            </div>
+
+            <!-- Theme Customization -->
+            <div class="settings-card">
+                <h3>{{ translateLanguage('admin.theme_customization') }}</h3>
+                <div class="form-group">
+                    <label>{{ translateLanguage('admin.primary_color') }}</label>
+                    <div class="color-picker-wrapper">
+                        <input v-model="settingsMap.theme_primary" type="color" class="color-picker">
+                        <input v-model="settingsMap.theme_primary" type="text" class="input-field">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>{{ translateLanguage('admin.secondary_color') }}</label>
+                    <div class="color-picker-wrapper">
+                        <input v-model="settingsMap.theme_secondary" type="color" class="color-picker">
+                        <input v-model="settingsMap.theme_secondary" type="text" class="input-field">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>{{ translateLanguage('admin.accent_color') }}</label>
+                    <div class="color-picker-wrapper">
+                        <input v-model="settingsMap.theme_accent" type="color" class="color-picker">
+                        <input v-model="settingsMap.theme_accent" type="text" class="input-field">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>{{ translateLanguage('admin.main_font') }}</label>
+                    <select v-model="settingsMap.theme_font_family" class="input-field">
+                        <option value="">{{ translateLanguage('admin.default') }}</option>
+                        <option value="'Tajawal', sans-serif">Tajawal</option>
+                        <option value="'Cairo', sans-serif">Cairo</option>
+                        <option value="'Almarai', sans-serif">Almarai</option>
+                    </select>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -176,9 +211,15 @@ onMounted(() => {
 
 .settings-card {
     background: white;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-radius: 1.25rem;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+}
+
+.settings-card:hover {
+    box-shadow: 0 12px 24px rgba(0,0,0,0.06);
 }
 
 .settings-card h3 {
@@ -195,14 +236,6 @@ onMounted(() => {
     color: var(--text-muted);
 }
 
-.toggle-group { display: flex; flex-direction: column; gap: 1rem; }
-.toggle-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    cursor: pointer;
-}
-.toggle-item input { width: 18px; height: 18px; }
 
 .color-picker-wrapper {
     display: flex;
@@ -218,6 +251,4 @@ onMounted(() => {
     overflow: hidden;
     cursor: pointer;
 }
-
-
 </style>

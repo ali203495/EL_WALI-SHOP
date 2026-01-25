@@ -1,21 +1,27 @@
 <script setup lang="ts">
-import gsap from 'gsap'
+import { gsap } from 'gsap'
 
 const route = useRoute()
-const config = useRuntimeConfig()
+const { translateLanguage } = useLanguage()
 
 // Get initial query from URL
 const searchQuery = ref((route.query.q as string) || '')
 
 useHead({
-    title: computed(() => searchQuery.value ? `Search: ${searchQuery.value}` : 'Search Products'),
+    title: computed(() => searchQuery.value 
+        ? `${translateLanguage('search.title')}: ${searchQuery.value}` 
+        : translateLanguage('search.title')),
     meta: [
         { name: 'robots', content: 'noindex, follow' }
     ]
 })
 
 const api = useApi()
-const { data: products } = await api.getProducts()
+const { data: products, pending: searchLoading, error: searchError, refresh } = await api.getProducts()
+
+const handleRetry = () => {
+    refresh()
+}
 
 const filteredProducts = computed(() => {
     if (!products.value) return []
@@ -50,43 +56,67 @@ onMounted(() => {
 
 <template>
     <div class="search-page">
-        <div class="container">
+        <!-- Loading State -->
+        <PageLoading v-if="searchLoading" :message="translateLanguage('catalog.loading')" />
+
+        <!-- Error State -->
+        <ErrorState 
+            v-else-if="searchError" 
+            icon="🔍" 
+            :title="translateLanguage('admin.failed_load')" 
+            :description="translateLanguage('common.error_desc')"
+            :retryable="true"
+            @retry="handleRetry"
+        >
+            <template #footer>
+                <div class="error-details">
+                    {{ searchError.message || searchError.statusText || searchError }}
+                </div>
+            </template>
+        </ErrorState>
+
+        <div v-else class="container">
+            <!-- Brand Blobs -->
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+
             <!-- Search Header -->
             <div class="search-header">
-                <h1>Search Results</h1>
-                <form @submit.prevent="handleSearch" class="search-form">
+                <span class="eyebrow">{{ translateLanguage('catalog.title') }}</span>
+                <h1>{{ translateLanguage('search.title') }}</h1>
+                <form class="search-form" @submit.prevent="handleSearch">
                     <input 
                         v-model="searchQuery" 
                         type="text" 
-                        placeholder="Search products, brands, categories..."
+                        :placeholder="translateLanguage('search.placeholder')"
                         class="input-field search-input"
                     >
-                    <button type="submit" class="btn btn-primary">Search</button>
+                    <button type="submit" class="btn btn-primary">{{ translateLanguage('common.search_btn') }}</button>
                 </form>
             </div>
 
             <!-- Results Info -->
-            <div class="results-info" v-if="searchQuery">
+            <div v-if="searchQuery" class="results-info">
                 <p>
-                    <strong>{{ filteredProducts.length }}</strong> results for 
+                    <strong>{{ filteredProducts.length }}</strong> {{ translateLanguage('search.results_for') }} 
                     "<strong>{{ searchQuery }}</strong>"
                 </p>
             </div>
 
             <!-- Results Grid -->
-            <div class="results-grid" v-if="filteredProducts.length">
+            <div v-if="filteredProducts.length" class="results-grid">
                 <div v-for="product in filteredProducts" :key="product.id" class="result-card">
-                    <NuxtLink :to="`/product/${product.id}`" class="result-link">
+                    <NuxtLink :to="product?.id ? `/product/${product.id}` : '#'" class="result-link">
                         <div class="result-image">
                             <img :src="product.image_url" :alt="product.name">
                         </div>
                         <div class="result-body">
-                            <span class="result-brand" v-if="product.brand">{{ product.brand.name }}</span>
+                            <span v-if="product.brand" class="result-brand">{{ product.brand.name }}</span>
                             <h3>{{ product.name }}</h3>
                             <p class="result-description">{{ product.description?.slice(0, 100) }}...</p>
                             <div class="result-footer">
-                                <span class="result-price">${{ product.price.toLocaleString() }}</span>
-                                <span class="result-rating" v-if="product.rating">⭐ {{ product.rating }}</span>
+                                <span v-if="product.price" class="result-price">{{ product.price.toLocaleString() }} {{ translateLanguage('common.currency') }}</span>
+                                <span v-if="product.rating" class="result-rating">⭐ {{ product.rating }}</span>
                             </div>
                         </div>
                     </NuxtLink>
@@ -96,10 +126,10 @@ onMounted(() => {
             <!-- Empty State -->
             <div v-else class="empty-results">
                 <span class="empty-icon">🔍</span>
-                <h2>No products found</h2>
-                <p v-if="searchQuery">Try different keywords or browse our catalog</p>
-                <p v-else>Enter a search term to find products</p>
-                <NuxtLink to="/catalog" class="btn btn-outline">Browse Catalog</NuxtLink>
+                <h2>{{ translateLanguage('search.no_found') }}</h2>
+                <p v-if="searchQuery">{{ translateLanguage('search.no_found_q') }}</p>
+                <p v-else>{{ translateLanguage('search.no_found_no_q') }}</p>
+                <NuxtLink to="/catalog" class="btn btn-outline">{{ translateLanguage('search.browse') }}</NuxtLink>
             </div>
         </div>
     </div>
@@ -108,7 +138,32 @@ onMounted(() => {
 <style scoped>
 .search-page {
     min-height: 80vh;
-    padding: 3rem 0;
+    padding: 5rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.blob {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
+    filter: blur(80px);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.blob-1 { top: -100px; right: -200px; }
+.blob-2 { bottom: -100px; left: -200px; }
+
+.eyebrow {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 1rem;
 }
 
 .search-header {
@@ -165,14 +220,22 @@ onMounted(() => {
 .result-image {
     width: 150px;
     flex-shrink: 0;
-    padding: 1rem;
+    padding: 1.5rem;
     background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .result-image img {
     width: 100%;
     height: 100px;
     object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.result-card:hover .result-image img {
+    transform: scale(1.1);
 }
 
 .result-body {

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { translateLanguage } = useLanguage()
+
 defineProps<{
     modelValue: boolean
     title?: string
@@ -33,18 +35,18 @@ const confirm = () => {
                     <div class="confirm-icon" :class="{ danger }">
                         {{ danger ? '⚠️' : '❓' }}
                     </div>
-                    <h3>{{ title || 'Are you sure?' }}</h3>
-                    <p>{{ message || 'This action cannot be undone.' }}</p>
+                    <h3>{{ title || translateLanguage('admin.confirm_dialog.default_title') }}</h3>
+                    <p>{{ message || translateLanguage('admin.confirm_dialog.default_message') }}</p>
                     <div class="confirm-actions">
                         <button class="btn btn-outline" @click="close">
-                            {{ cancelText || 'Cancel' }}
+                            {{ cancelText || translateLanguage('admin.confirm_dialog.cancel') }}
                         </button>
                         <button 
                             class="btn" 
                             :class="danger ? 'btn-danger' : 'btn-primary'" 
                             @click="confirm"
                         >
-                            {{ confirmText || 'Confirm' }}
+                            {{ confirmText || translateLanguage('admin.confirm_dialog.confirm') }}
                         </button>
                     </div>
                 </div>

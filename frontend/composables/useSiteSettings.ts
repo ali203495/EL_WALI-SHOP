@@ -52,7 +52,12 @@ export const useSiteSettings = () => {
 
         state.loading = true
         try {
-            const { data } = await api.getSettings()
+            const { data, error } = await api.getSettings()
+
+            if (error.value) {
+                // console.warn('Failed to fetch settings:', error.value)
+                return
+            }
 
             if (data.value) {
                 // Map array of {key, value} to object
@@ -66,7 +71,7 @@ export const useSiteSettings = () => {
                 applyTheme()
             }
         } catch (e) {
-            console.error('Failed to load site settings', e)
+            // console.error('Failed to load site settings', e)
         } finally {
             state.loading = false
             state.initialized = true

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { translateLanguage } = useLanguage()
+
 defineProps<{
     icon?: string
     title?: string
@@ -14,14 +16,14 @@ const emit = defineEmits<{
 <template>
     <div class="error-state">
         <span class="error-icon">{{ icon || '⚠️' }}</span>
-        <h3>{{ title || 'Something went wrong' }}</h3>
-        <p>{{ description || 'We encountered an error while loading this content.' }}</p>
+        <h3>{{ title || translateLanguage('common.error_title') }}</h3>
+        <p>{{ description || translateLanguage('common.error_desc') }}</p>
         <div class="error-actions">
             <button v-if="retryable" class="btn btn-primary" @click="emit('retry')">
-                Try Again
+                {{ translateLanguage('common.try_again') }}
             </button>
             <NuxtLink to="/" class="btn btn-outline">
-                Go Home
+                {{ translateLanguage('common.go_home') }}
             </NuxtLink>
         </div>
     </div>

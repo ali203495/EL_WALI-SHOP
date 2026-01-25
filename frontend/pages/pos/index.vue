@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import gsap from 'gsap'
+import { gsap } from 'gsap'
+const { translateLanguage } = useLanguage()
 
 definePageMeta({
     layout: false
@@ -12,7 +13,11 @@ const checkoutLoading = ref(false)
 const orderSuccess = ref(false)
 
 // Fetch products from catalog API
-const { data: products } = await api.getProducts()
+const { data: products, pending: productsLoading, error: productsError, refresh } = await api.getProducts()
+
+const handleRetry = () => {
+    refresh()
+}
 
 const addToCart = (product: any) => {
     const existing = cart.value.find(item => item.product.id === product.id)
@@ -91,7 +96,16 @@ const checkout = async () => {
     }))
     
     try {
-        await api.createOrder({ items: orderItems })
+        await api.createOrder({ 
+            items: orderItems,
+            email: 'pos@elwali.shop',
+            firstName: 'POS',
+            lastName: 'Customer',
+            address: 'Store POS',
+            city: 'Store',
+            country: 'UAE',
+            zip: '00000'
+        })
         orderSuccess.value = true
         cart.value = []
         
@@ -99,7 +113,7 @@ const checkout = async () => {
             orderSuccess.value = false
         }, 3000)
     } catch (e) {
-        alert('Error placing order')
+        alert(translateLanguage('pos.order_error'))
     } finally {
         checkoutLoading.value = false
     }
@@ -116,98 +130,134 @@ const clearCart = () => {
         }
     })
 }
+
+const formatCurrency = (val: number) => {
+    return `${val.toLocaleString()} ${translateLanguage('common.currency')}`
+}
+
+useHead({
+    title: `Maison El Wali | ${translateLanguage('pos.title')}`
+})
 </script>
 
 <template>
     <div class="pos-container">
-        <!-- Product Grid -->
-        <div class="products-area">
-            <div class="pos-header">
-                <h1>Point of Sale</h1>
-                <NuxtLink to="/admin" class="btn btn-outline btn-sm">← Back to Admin</NuxtLink>
+        <!-- Brand Blobs -->
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <!-- Loading State -->
+        <PageLoading v-if="productsLoading" :message="translateLanguage('admin.loading_data')" />
+
+        <!-- Error State -->
+        <ErrorState 
+            v-else-if="productsError"
+            icon="🛒"
+            :title="translateLanguage('admin.failed_load')"
+            :description="translateLanguage('common.error_desc')"
+            :retryable="true"
+            @retry="handleRetry"
+        >
+            <template #footer>
+                <div class="error-details" style="color: white; opacity: 0.7;">
+                    {{ productsError.message || productsError.statusText || productsError }}
+                </div>
+            </template>
+        </ErrorState>
+
+        <template v-else>
+            <!-- Product Grid -->
+            <div class="products-area">
+                <div class="pos-header">
+                    <h1>{{ translateLanguage('pos.title') }}</h1>
+                    <NuxtLink to="/admin" class="btn btn-outline btn-sm">← {{ translateLanguage('pos.back_to_admin') }}</NuxtLink>
+                </div>
+                
+                <div class="products-grid">
+                    <div 
+                        v-for="product in products || []" 
+                        :id="`product-${product.id}`" 
+                        :key="product.id"
+                        class="product-tile" 
+                        @click="addToCart(product)"
+                    >
+                        <img :src="product.image_url" :alt="product.name" class="product-image">
+                        <div class="product-details">
+                            <span v-if="product.brand" class="product-brand">{{ product.brand.name }}</span>
+                            <h3>{{ product.name }}</h3>
+                            <div class="product-meta">
+                                <span class="product-price">{{ formatCurrency(product.price) }}</span>
+                                <span class="product-stock" :class="{ low: product.stock < 20 }">
+                                    {{ product.stock }} {{ translateLanguage('pos.left') }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="!products || products.length === 0" class="empty-state" style="grid-column: 1/-1; text-align: center; color: white; padding: 4rem;">
+                        <p>{{ translateLanguage('admin.no_data') }}</p>
+                    </div>
+                </div>
             </div>
             
-            <div class="products-grid">
-                <div 
-                    v-for="product in products" 
-                    :key="product.id" 
-                    :id="`product-${product.id}`"
-                    class="product-tile" 
-                    @click="addToCart(product)"
-                >
-                    <img :src="product.image_url" :alt="product.name" class="product-image">
-                    <div class="product-details">
-                        <span class="product-brand" v-if="product.brand">{{ product.brand.name }}</span>
-                        <h3>{{ product.name }}</h3>
-                        <div class="product-meta">
-                            <span class="product-price">${{ product.price }}</span>
-                            <span class="product-stock" :class="{ low: product.stock < 20 }">
-                                {{ product.stock }} left
-                            </span>
+            <!-- Cart Sidebar -->
+            <div class="cart-panel">
+                <div class="cart-header">
+                    <h2>{{ translateLanguage('pos.current_order') }}</h2>
+                    <button v-if="cart.length > 0" class="clear-btn" @click="clearCart">{{ translateLanguage('pos.clear_all') }}</button>
+                </div>
+                
+                <div class="cart-items">
+                    <div v-if="cart.length === 0" class="empty-cart">
+                        <span class="empty-icon">🛒</span>
+                        <p>{{ translateLanguage('pos.cart_empty') }}</p>
+                        <p class="hint">{{ translateLanguage('pos.add_hint') }}</p>
+                    </div>
+                    
+                    <div 
+                        v-for="item in cart" 
+                        :id="`cart-item-${item.product.id}`" 
+                        :key="item.product.id"
+                        class="cart-item"
+                    >
+                        <img :src="item.product.image_url" class="cart-thumb">
+                        <div class="cart-item-info">
+                            <span class="cart-item-name">{{ item.product.name }}</span>
+                            <span class="cart-item-price">{{ formatCurrency(item.product.price * item.quantity) }}</span>
+                        </div>
+                        <div class="quantity-controls">
+                            <button @click.stop="updateQuantity(item.product.id, -1)">−</button>
+                            <span :id="`qty-${item.product.id}`">{{ item.quantity }}</span>
+                            <button @click.stop="updateQuantity(item.product.id, 1)">+</button>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Cart Sidebar -->
-        <div class="cart-panel">
-            <div class="cart-header">
-                <h2>Current Order</h2>
-                <button v-if="cart.length > 0" @click="clearCart" class="clear-btn">Clear All</button>
-            </div>
-            
-            <div class="cart-items">
-                <div v-if="cart.length === 0" class="empty-cart">
-                    <span class="empty-icon">🛒</span>
-                    <p>Cart is empty</p>
-                    <p class="hint">Click products to add them</p>
-                </div>
                 
-                <div 
-                    v-for="item in cart" 
-                    :key="item.product.id" 
-                    :id="`cart-item-${item.product.id}`"
-                    class="cart-item"
-                >
-                    <img :src="item.product.image_url" class="cart-thumb">
-                    <div class="cart-item-info">
-                        <span class="cart-item-name">{{ item.product.name }}</span>
-                        <span class="cart-item-price">${{ (item.product.price * item.quantity).toFixed(2) }}</span>
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>{{ translateLanguage('pos.subtotal') }}</span>
+                        <span>{{ formatCurrency(subtotal) }}</span>
                     </div>
-                    <div class="quantity-controls">
-                        <button @click.stop="updateQuantity(item.product.id, -1)">−</button>
-                        <span :id="`qty-${item.product.id}`">{{ item.quantity }}</span>
-                        <button @click.stop="updateQuantity(item.product.id, 1)">+</button>
+                    <div class="summary-row">
+                        <span>{{ translateLanguage('pos.tax') }} (8%)</span>
+                        <span>{{ formatCurrency(tax) }}</span>
                     </div>
+                    <div class="summary-row total">
+                        <span>{{ translateLanguage('pos.total') }}</span>
+                        <span>{{ formatCurrency(total) }}</span>
+                    </div>
+                    
+                    <button 
+                        class="checkout-btn" 
+                        :disabled="cart.length === 0 || checkoutLoading"
+                        @click="checkout"
+                    >
+                        <span v-if="checkoutLoading">{{ translateLanguage('pos.processing') }}</span>
+                        <span v-else-if="orderSuccess">{{ translateLanguage('pos.order_placed') }}</span>
+                        <span v-else>{{ translateLanguage('pos.complete_order') }}</span>
+                    </button>
                 </div>
             </div>
-            
-            <div class="cart-summary">
-                <div class="summary-row">
-                    <span>Subtotal</span>
-                    <span>${{ subtotal.toFixed(2) }}</span>
-                </div>
-                <div class="summary-row">
-                    <span>Tax (8%)</span>
-                    <span>${{ tax.toFixed(2) }}</span>
-                </div>
-                <div class="summary-row total">
-                    <span>Total</span>
-                    <span>${{ total.toFixed(2) }}</span>
-                </div>
-                
-                <button 
-                    class="checkout-btn" 
-                    :disabled="cart.length === 0 || checkoutLoading"
-                    @click="checkout"
-                >
-                    <span v-if="checkoutLoading">Processing...</span>
-                    <span v-else-if="orderSuccess">✓ Order Placed!</span>
-                    <span v-else>Complete Order</span>
-                </button>
-            </div>
-        </div>
+        </template>
     </div>
 </template>
 
@@ -217,19 +267,37 @@ const clearCart = () => {
     grid-template-columns: 1fr 400px;
     height: 100vh;
     background: #0f172a;
+    position: relative;
+    overflow: hidden;
 }
+
+.blob {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
+    filter: blur(60px);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.blob-1 { top: -200px; left: -100px; }
+.blob-2 { bottom: -200px; right: 200px; }
 
 .products-area {
-    padding: 2rem;
+    padding: 2.5rem;
     overflow-y: auto;
+    position: relative;
+    z-index: 1;
 }
 
-.pos-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    color: white;
+.pos-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .products-grid {
@@ -305,9 +373,12 @@ const clearCart = () => {
 
 /* Cart Panel */
 .cart-panel {
-    background: var(--surface);
+    background: white;
     display: flex;
     flex-direction: column;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 2;
 }
 
 .cart-header {

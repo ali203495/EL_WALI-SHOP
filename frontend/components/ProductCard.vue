@@ -9,12 +9,13 @@ defineProps<{
 defineEmits(['quickView'])
 
 const { isInWishlist, toggleWishlist } = useWishlist()
+const { translateLanguage } = useLanguage()
 </script>
 
 <template>
-    <NuxtLink :to="`/product/${product.id}`" class="product-card">
+    <NuxtLink :to="product?.id ? `/product/${product.id}` : '#'" class="product-card">
         <div class="card-badge" v-if="showBadge && product.rating && product.rating >= 4.8">
-            ⭐ Top Rated
+            ⭐ {{ translateLanguage('common.top_rated') }}
         </div>
         
         <div class="card-image">
@@ -25,14 +26,14 @@ const { isInWishlist, toggleWishlist } = useWishlist()
                     class="action-btn" 
                     :class="{ 'active': isInWishlist(product.id) }"
                     @click.prevent="toggleWishlist(product.id)"
-                    title="Add to Wishlist"
+                    :title="translateLanguage('pdp.add_wishlist')"
                 >
                     ♥
                 </button>
                 <button 
                     class="action-btn" 
                     @click.prevent="$emit('quickView', product)"
-                    title="Quick View"
+                    :title="translateLanguage('pdp.quick_view')"
                 >
                     👁
                 </button>
@@ -49,8 +50,8 @@ const { isInWishlist, toggleWishlist } = useWishlist()
             </div>
             
             <div class="card-footer">
-                <span class="card-price">${{ product.price.toLocaleString() }}</span>
-                <span class="card-link">View →</span>
+                <span class="card-price">{{ product.price.toLocaleString() }} {{ translateLanguage('common.currency') }}</span>
+                <span class="card-link">{{ translateLanguage('pdp.view') }} →</span>
             </div>
         </div>
     </NuxtLink>

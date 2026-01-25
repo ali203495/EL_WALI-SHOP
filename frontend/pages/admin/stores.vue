@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useAuthStore } from '~/stores/auth'
 import { useApi } from '~/composables/useApi'
 import { useToast } from '~/composables/useToast'
+const { translateLanguage } = useLanguage()
 
 definePageMeta({
     layout: 'admin'
 })
 
 const api = useApi()
-const auth = useAuthStore()
 const toast = useToast()
 
 const stores = ref<any[]>([])
@@ -27,10 +26,14 @@ const form = ref({
 
 const fetchStores = async () => {
     try {
-        const { data } = await api.getStores()
+        const { data, error } = await api.getStores()
+        if (error.value) {
+            toast.error(translateLanguage('admin.failed_load'))
+            return
+        }
         stores.value = data.value || []
     } catch (e) {
-        toast.error('Failed to fetch stores')
+        toast.error(translateLanguage('admin.failed_load'))
     }
 }
 
@@ -38,7 +41,7 @@ const handleSubmit = async () => {
     try {
         isLoading.value = true
         await api.createStore(form.value)
-        toast.success('Store added successfully')
+        toast.success(translateLanguage('admin.save_success'))
         showModal.value = false
         form.value = { name: '', address: '', city: '', phone: '', latitude: 0, longitude: 0 }
         await fetchStores()
@@ -50,14 +53,14 @@ const handleSubmit = async () => {
 }
 
 const deleteStore = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this store?')) return
+    if (!confirm(translateLanguage('admin.delete_confirm'))) return
     
     try {
         await api.deleteStore(id)
-        toast.success('Store deleted')
+        toast.success(translateLanguage('admin.delete_success'))
         await fetchStores()
     } catch (e: any) {
-        toast.error(e.response?._data?.detail || 'Failed to delete store')
+        toast.error(e.response?._data?.detail || translateLanguage('admin.failed_load'))
     }
 }
 
@@ -67,21 +70,24 @@ onMounted(() => {
 </script>
 
 <template>
-    <div dir="rtl">
+    <div>
         <div class="header">
-            <h1>إدارة المتاجر</h1>
-            <button @click="showModal = true" class="btn btn-primary">+ إضافة متجر</button>
+            <div>
+                <h1>{{ translateLanguage('admin.stores_management') }}</h1>
+                <p class="subtitle">{{ translateLanguage('nav.admin_portal') }} / {{ translateLanguage('nav.stores') }}</p>
+            </div>
+            <button class="btn btn-primary" @click="showModal = true">+ {{ translateLanguage('admin.add_store') }}</button>
         </div>
 
         <div class="table-container">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>الاسم</th>
-                        <th>العنوان</th>
-                        <th>المدينة</th>
-                        <th>الهاتف</th>
-                        <th>إجراءات</th>
+                        <th>{{ translateLanguage('admin.name') }}</th>
+                        <th>{{ translateLanguage('admin.address') }}</th>
+                        <th>{{ translateLanguage('admin.city') }}</th>
+                        <th>{{ translateLanguage('admin.phone') }}</th>
+                        <th>{{ translateLanguage('admin.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -91,7 +97,7 @@ onMounted(() => {
                         <td>{{ store.city }}</td>
                         <td>{{ store.phone }}</td>
                         <td>
-                            <button @click="deleteStore(store.id)" class="btn-icon text-danger" title="حذف">
+                            <button class="btn-icon text-danger" :title="translateLanguage('admin.delete')" @click="deleteStore(store.id)">
                                 🗑️
                             </button>
                         </td>
@@ -103,32 +109,32 @@ onMounted(() => {
         <!-- Modal -->
         <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
             <div class="modal">
-                <h2>إضافة متجر جديد</h2>
-                <form @submit.prevent="handleSubmit" class="form-grid">
+                <h2>{{ translateLanguage('admin.add_store') }}</h2>
+                <form class="form-grid" @submit.prevent="handleSubmit">
                     <div class="form-group">
-                        <label>اسم المتجر</label>
+                        <label>{{ translateLanguage('admin.name') }}</label>
                         <input v-model="form.name" required class="input" />
                     </div>
                     
                     <div class="form-group">
-                        <label>العنوان</label>
+                        <label>{{ translateLanguage('admin.address') }}</label>
                         <input v-model="form.address" required class="input" />
                     </div>
                     
                     <div class="form-group">
-                        <label>المدينة</label>
+                        <label>{{ translateLanguage('admin.city') }}</label>
                         <input v-model="form.city" required class="input" />
                     </div>
                     
                      <div class="form-group">
-                        <label>الهاتف</label>
+                        <label>{{ translateLanguage('admin.phone') }}</label>
                         <input v-model="form.phone" class="input" />
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" @click="showModal = false" class="btn btn-outline">إلغاء</button>
+                        <button type="button" class="btn btn-outline" @click="showModal = false">{{ translateLanguage('admin.cancel') }}</button>
                         <button type="submit" class="btn btn-primary" :disabled="isLoading">
-                            {{ isLoading ? 'جاري الإضافة...' : 'إضافة' }}
+                            {{ isLoading ? translateLanguage('admin.uploading') : translateLanguage('admin.add_store') }}
                         </button>
                     </div>
                 </form>
@@ -160,13 +166,24 @@ onMounted(() => {
 .data-table th,
 .data-table td {
     padding: 1rem;
-    text-align: right;
+    text-align: left;
     border-bottom: 1px solid var(--border);
 }
 
 .data-table th {
     background: #f8fafc;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.subtitle {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
 }
 
 .text-danger { color: var(--danger); }

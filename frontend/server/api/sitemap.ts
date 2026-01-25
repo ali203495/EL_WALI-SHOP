@@ -1,4 +1,4 @@
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (_event) => {
     const config = useRuntimeConfig()
     // Use the backend URL directly if server-side, or use the proxy
     // During build, we might need direct access if proxy isn't up, 
@@ -10,8 +10,6 @@ export default defineEventHandler(async (event) => {
 
     try {
         const products: any[] = await $fetch(`${apiBase}/products/`)
-        const brands: any[] = await $fetch(`${apiBase}/brands/`)
-        const categories: any[] = await $fetch(`${apiBase}/categories/`)
 
         const urls = []
 
@@ -32,7 +30,7 @@ export default defineEventHandler(async (event) => {
 
         return urls
     } catch (e) {
-        console.error('Sitemap generation failed:', e)
+        // console.error('Sitemap generation failed:', e)
         return []
     }
 })

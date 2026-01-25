@@ -1,10 +1,10 @@
 // @ts-nocheck
-export default defineNuxtPlugin((nuxtApp) => {
+export default defineNuxtPlugin((_nuxtApp) => {
     const config = useRuntimeConfig()
     const pixelId = config.public.facebookPixelId
 
     if (!pixelId) {
-        console.warn('Facebook Pixel ID is not set. Pixel disabled.')
+        // console.warn('Facebook Pixel ID is not set. Pixel disabled.')
         return
     }
 

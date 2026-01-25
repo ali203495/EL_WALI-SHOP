@@ -1,15 +1,21 @@
 <script setup lang="ts">
-import gsap from 'gsap'
+import { gsap } from 'gsap'
+
+const { translateLanguage } = useLanguage()
 
 useHead({
-    title: 'Our Locations',
+    title: `${translateLanguage('stores.title')} | Maison El Wali`,
     meta: [
-        { name: 'description', content: 'Find a LUXE.TECH premium showroom near you. Experience our products in person.' }
+        { name: 'description', content: translateLanguage('stores.meta_desc') }
     ]
 })
 
 const api = useApi()
-const { data: stores } = await api.getStores()
+const { data: stores, pending: storesLoading, error: storesError, refresh } = await api.getStores()
+
+const handleRetry = () => {
+    refresh()
+}
 
 const selectedStore = ref<any>(null)
 
@@ -30,102 +36,119 @@ onMounted(() => {
 
 <template>
     <div class="stores-page">
-        <!-- Hero -->
-        <section class="stores-hero">
-            <div class="container">
-                <h1>Find Your Nearest Store</h1>
-                <p>Experience our products in person at one of our premium showrooms</p>
-            </div>
-        </section>
+        <!-- Loading State -->
+        <PageLoading v-if="storesLoading" :message="translateLanguage('admin.loading_data')" />
 
-        <!-- Store Locator -->
-        <section class="locator-section">
-            <div class="container">
-                <div class="locator-layout">
-                    <!-- Store List -->
-                    <div class="store-list">
-                        <h3>{{ stores?.length }} Locations</h3>
-                        
-                        <div 
-                            v-for="store in stores" 
-                            :key="store.id" 
-                            class="store-card"
-                            :class="{ active: selectedStore?.id === store.id }"
-                            @click="selectStore(store)"
-                        >
-                            <div class="store-header">
-                                <h4>{{ store.name }}</h4>
-                                <span class="city-badge">{{ store.city.split(',')[0] }}</span>
-                            </div>
-                            <p class="store-address">
-                                <span class="icon">📍</span>
-                                {{ store.address }}, {{ store.city }}
-                            </p>
-                            <p class="store-phone">
-                                <span class="icon">📞</span>
-                                {{ store.phone }}
-                            </p>
-                            <div class="store-actions">
-                                <a 
-                                    :href="`https://www.google.com/maps/search/?api=1&query=${store.latitude},${store.longitude}`" 
-                                    target="_blank"
-                                    class="btn btn-sm btn-primary"
-                                >
-                                    Get Directions
-                                </a>
-                                <a :href="`tel:${store.phone}`" class="btn btn-sm btn-outline">
-                                    Call Store
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Map Area -->
-                    <div class="map-area">
-                        <div class="map-placeholder">
-                            <div class="map-content">
-                                <span class="map-icon">🗺️</span>
-                                <h3>Interactive Map</h3>
-                                <p>Connect Google Maps API to display locations</p>
-                                
-                                <!-- Store Preview -->
-                                <div v-if="selectedStore" class="selected-store-preview">
-                                    <h4>{{ selectedStore.name }}</h4>
-                                    <p>{{ selectedStore.address }}, {{ selectedStore.city }}</p>
-                                    <p class="coords">
-                                        Lat: {{ selectedStore.latitude.toFixed(4) }}, 
-                                        Lng: {{ selectedStore.longitude.toFixed(4) }}
-                                    </p>
+        <!-- Error State -->
+        <ErrorState 
+            v-else-if="storesError" 
+            icon="📍" 
+            :title="translateLanguage('admin.failed_load')" 
+            :description="translateLanguage('common.error_desc')"
+            :retryable="true"
+            @retry="handleRetry"
+        >
+            <template #footer>
+                <div class="error-details">
+                    {{ storesError.message || storesError.statusText || storesError }}
+                </div>
+            </template>
+        </ErrorState>
+
+        <template v-else>
+            <!-- Hero -->
+            <section class="stores-hero">
+                <div class="container">
+                    <h1>{{ translateLanguage('stores.hero_title') }}</h1>
+                    <p>{{ translateLanguage('stores.hero_subtitle') }}</p>
+                </div>
+            </section>
+
+            <!-- Store Locator -->
+            <section class="locator-section">
+                <div class="container">
+                    <div class="locator-layout">
+                        <!-- Store List -->
+                        <div class="store-list">
+                            <h3>{{ stores?.length || 0 }} {{ translateLanguage('stores.locations') }}</h3>
+                            
+                            <div 
+                                v-for="store in stores || []" 
+                                :key="store.id" 
+                                class="store-card"
+                                :class="{ active: selectedStore?.id === store.id }"
+                                @click="selectStore(store)"
+                            >
+                                <div class="store-header">
+                                    <h4>{{ store.name }}</h4>
+                                    <span class="city-badge">{{ store.city.split(',')[0] }}</span>
+                                </div>
+                                <p class="store-address">
+                                    <span class="icon">📍</span>
+                                    {{ store.address }}, {{ store.city }}
+                                </p>
+                                <p class="store-phone">
+                                    <span class="icon">📞</span>
+                                    {{ store.phone }}
+                                </p>
+                                <div class="store-actions">
+                                    <a 
+                                        :href="`https://www.google.com/maps/search/?api=1&query=${store.latitude},${store.longitude}`" 
+                                        target="_blank"
+                                        class="btn btn-sm btn-primary"
+                                    >
+                                        {{ translateLanguage('stores.get_directions') }}
+                                    </a>
+                                    <a :href="`tel:${store.phone}`" class="btn btn-sm btn-outline">
+                                        {{ translateLanguage('boutique.call') }}
+                                    </a>
                                 </div>
                             </div>
+                            
+                            <div v-if="!stores || stores.length === 0" class="empty-state">
+                                <p>{{ translateLanguage('admin.failed_load') }}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Map Area -->
+                        <div class="map-area">
+                            <img src="/images/luxury-map.png" alt="Maison El Wali Boutique Locations" class="full-map-image animate-fadeIn">
+                            
+                            <div v-if="selectedStore" class="store-overlay glass-panel">
+                                <h4>{{ selectedStore.name }}</h4>
+                                <p>{{ selectedStore.address }}, {{ selectedStore.city }}</p>
+                                <a :href="`https://www.google.com/maps/search/?api=1&query=${selectedStore.latitude},${selectedStore.longitude}`" target="_blank" class="btn btn-sm btn-primary">
+                                    {{ translateLanguage('stores.get_directions') }}
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Info Section -->
-        <section class="info-section">
-            <div class="container">
-                <div class="info-grid">
-                    <div class="info-card">
-                        <span class="info-icon">🕐</span>
-                        <h4>Store Hours</h4>
-                        <p>Mon-Sat: 10AM - 9PM<br>Sun: 11AM - 7PM</p>
-                    </div>
-                    <div class="info-card">
-                        <span class="info-icon">👨‍💼</span>
-                        <h4>Expert Staff</h4>
-                        <p>Our trained specialists will help you find the perfect device</p>
-                    </div>
-                    <div class="info-card">
-                        <span class="info-icon">🔧</span>
-                        <h4>Service Center</h4>
-                        <p>In-store repairs and technical support available</p>
+            <!-- Info Section -->
+            <section class="info-section">
+                <div class="container">
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <span class="info-icon">🕐</span>
+                            <h4>{{ translateLanguage('stores.hours') }}</h4>
+                            <p>{{ translateLanguage('stores.mon_sat') }}: 10AM - 9PM<br>{{ translateLanguage('stores.sun') }}: 11AM - 7PM</p>
+                        </div>
+                        <div class="info-card">
+                            <span class="info-icon">👨‍💼</span>
+                            <h4>{{ translateLanguage('stores.expert_staff') }}</h4>
+                            <p>{{ translateLanguage('stores.expert_desc') }}</p>
+                        </div>
+                        <div class="info-card">
+                            <span class="info-icon">🔧</span>
+                            <h4>{{ translateLanguage('stores.service_center') }}</h4>
+                            <p>{{ translateLanguage('stores.service_desc') }}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        </template>
     </div>
 </template>
 
@@ -230,46 +253,39 @@ onMounted(() => {
 
 /* Map */
 .map-area {
+    position: relative;
     background: #e2e8f0;
     border-radius: var(--radius-lg);
     overflow: hidden;
 }
 
-.map-placeholder {
+.full-map-image {
+    width: 100%;
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    object-fit: cover;
 }
 
-.map-content {
-    text-align: center;
-    color: #64748b;
-}
-
-.map-icon {
-    font-size: 4rem;
-    display: block;
-    margin-bottom: 1rem;
-}
-
-.selected-store-preview {
-    margin-top: 2rem;
+.store-overlay {
+    position: absolute;
+    bottom: 2rem;
+    left: 2rem;
+    right: 2rem;
     padding: 1.5rem;
-    background: white;
-    border-radius: var(--radius);
-    text-align: left;
+    max-width: 320px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--primary);
+    box-shadow: var(--shadow-xl);
 }
 
-.selected-store-preview h4 {
-    color: var(--text);
+.store-overlay h4 {
     margin-bottom: 0.5rem;
+    color: var(--text);
 }
 
-.coords {
-    font-size: 0.75rem;
-    font-family: monospace;
-    margin-top: 0.5rem;
+.store-overlay p {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
 }
 
 /* Info Section */

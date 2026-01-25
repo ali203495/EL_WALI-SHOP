@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import gsap from 'gsap'
+import { gsap } from 'gsap'
 
+const { translateLanguage } = useLanguage()
 const route = useRoute()
 const orderId = route.query.orderId || 'Unknown'
+// ... rest of script ...
 
 onMounted(() => {
     // Initial entrance
@@ -50,35 +52,29 @@ const createConfetti = () => {
 <template>
     <div class="confirmation-page">
         <div class="card">
-            <div class="icon-wrapper">
+            <div class="icon-wrapper maison-primary">
                 <span class="check-icon">✓</span>
             </div>
             
             <div class="content">
-                <h1>Order Confirmed!</h1>
-                <p class="subtitle">Thank you for your purchase.</p>
+                <h1>{{ translateLanguage('confirmation.title') }}</h1>
+                <p class="subtitle">{{ translateLanguage('confirmation.subtitle') }}</p>
                 
                 <div class="order-details">
-                    <p>Order ID</p>
+                    <p>{{ translateLanguage('confirmation.order_id') }}</p>
                     <span class="order-id">#{{ orderId }}</span>
                 </div>
                 
                 <p class="message">
-                    We've sent a confirmation email to your inbox.<br>
-                    You can track your order status in your account.
+                    {{ translateLanguage('confirmation.message') }}
                 </p>
-                <!-- The provided snippet for insertion was syntactically incorrect and out of context. -->
-                <!-- It contained a button with a v-for loop related to product images, -->
-                <!-- and was closed by </NuxtLink> instead of </button>. -->
-                <!-- To maintain syntactical correctness, this specific snippet cannot be inserted as is. -->
-                <!-- If you intended to add a new button or element here, please provide a corrected snippet. -->
 
                 <div class="actions">
                     <NuxtLink to="/catalog" class="btn btn-primary btn-lg">
-                        Continue Shopping
+                        {{ translateLanguage('confirmation.continue_shopping') }}
                     </NuxtLink>
                     <NuxtLink to="/" class="btn btn-text">
-                        Back to Home
+                        {{ translateLanguage('confirmation.back_home') }}
                     </NuxtLink>
                 </div>
             </div>

@@ -50,30 +50,6 @@
     --transition-slow: 0.5s ease;
 }
 
-/* Dark Mode Theme - Luxury Black & Gold */
-[data-theme="dark"] {
-    --background: #0a0a0a;
-    --surface: #171717;
-    /* Overrides for text visibility - Stealth Stone (Very Dark) */
-    --text: #78716c;
-    /* Body text becomes Stone 500 (Deep Gray) */
-    --secondary: #a8a29e;
-    /* Headings become Stone 400 (Mid Gray) */
-    --text-muted: #57524e;
-    /* Muted text becomes Stone 600 (Dark Stone) */
-
-    /* Vivid Colors for Dark Mode */
-    --primary: #FFD700;
-    /* Vivid Gold (instead of Metallic) */
-    --primary-hover: #fbbf24;
-    /* Amber Gold */
-
-    /* Request: Filters= grissssssss */
-    --input-bg: #262626;
-    /* Dark Gray for Inputs */
-    --input-border: #404040;
-}
-
 /* ================================================
    BASE STYLES
    ================================================ */
@@ -132,12 +108,6 @@ h6 {
     letter-spacing: -0.01em;
     line-height: 1.2;
     color: var(--secondary);
-}
-
-[data-theme="dark"] h1,
-[data-theme="dark"] h2,
-[data-theme="dark"] h3 {
-    color: #fff;
 }
 
 h1 {
@@ -432,7 +402,8 @@ h4 {
 /* Global Table Styles */
 .data-table {
     width: 100%;
-    border-collapse: separate; /* Allows border radius */
+    border-collapse: separate;
+    /* Allows border radius */
     border-spacing: 0;
 }
 

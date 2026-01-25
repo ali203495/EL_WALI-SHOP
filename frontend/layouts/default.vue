@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useLanguage } from '../composables/useLanguage'
 
 const mobileMenuOpen = ref(false)
 const searchOpen = ref(false)
 const searchQuery = ref('')
 const cartDrawerOpen = ref(false)
 
-const { isDark, toggle: toggleDarkMode } = useDarkMode()
+const { translateLanguage } = useLanguage()
 const { itemCount } = useCart()
 
 const toggleMobileMenu = () => {
@@ -26,6 +27,7 @@ const { settings } = useSiteSettings();
 
 <template>
   <div class="public-layout">
+    <AdminBar />
     <!-- Header -->
     <header class="navbar">
       <div class="container nav-content">
@@ -35,29 +37,27 @@ const { settings } = useSiteSettings();
         </NuxtLink>
         
         <nav class="nav-links desktop-only">
-          <NuxtLink to="/catalog">Collections</NuxtLink>
-          <NuxtLink to="/packages">Packages</NuxtLink>
-          <NuxtLink to="/boutique">Boutique</NuxtLink>
-          <NuxtLink to="/about">The Maison</NuxtLink>
-          <NuxtLink to="/contact">Concierge</NuxtLink>
+          <NuxtLink to="/catalog">{{ translateLanguage('nav.catalog') }}</NuxtLink>
+          <NuxtLink to="/packages">{{ translateLanguage('nav.packages') }}</NuxtLink>
+          <NuxtLink to="/boutique">{{ translateLanguage('nav.boutique') }}</NuxtLink>
+          <NuxtLink to="/about">{{ translateLanguage('nav.about') }}</NuxtLink>
+          <NuxtLink to="/contact">{{ translateLanguage('nav.contact') }}</NuxtLink>
         </nav>
         
         <div class="nav-actions">
-          <button class="icon-btn" @click="searchOpen = !searchOpen" title="Search">
+          <button class="icon-btn" title="Search" @click="searchOpen = !searchOpen">
             🔍
           </button>
           
-          <button class="icon-btn cart-btn" @click="cartDrawerOpen = true" title="Cart">
+          <button class="icon-btn cart-btn" :title="translateLanguage('common.cart')" @click="cartDrawerOpen = true">
             <span class="cart-icon">🛒</span>
             <span v-if="itemCount > 0" class="cart-badge">{{ itemCount }}</span>
           </button>
 
-          <button class="icon-btn" @click="toggleDarkMode" :title="isDark ? 'Light Mode' : 'Dark Mode'">
-            {{ isDark ? '☀️' : '🌙' }}
-          </button>
+          <LanguageSwitcher />
           
           <NuxtLink to="/login" class="btn btn-sm btn-primary desktop-only">
-            login
+            {{ translateLanguage('nav.login') }}
           </NuxtLink>
           
           <button class="icon-btn mobile-only" @click="toggleMobileMenu">
@@ -73,23 +73,23 @@ const { settings } = useSiteSettings();
           <input 
             v-model="searchQuery"
             type="text" 
-            placeholder="Search products..." 
+            :placeholder="translateLanguage('common.search')" 
             class="search-input" 
             autofocus
           >
-          <button type="submit" class="btn btn-primary">Search</button>
+          <button type="submit" class="btn btn-primary">{{ translateLanguage('common.search_btn') }}</button>
         </form>
       </div>
       
       <!-- Mobile Menu -->
       <div v-if="mobileMenuOpen" class="mobile-menu">
         <nav>
-          <NuxtLink to="/catalog" @click="mobileMenuOpen = false">Collections</NuxtLink>
-          <NuxtLink to="/packages" @click="mobileMenuOpen = false">Packages</NuxtLink>
-          <NuxtLink to="/boutique" @click="mobileMenuOpen = false">Boutique</NuxtLink>
-          <NuxtLink to="/about" @click="mobileMenuOpen = false">About</NuxtLink>
-          <NuxtLink to="/contact" @click="mobileMenuOpen = false">Contact</NuxtLink>
-          <NuxtLink to="/login" @click="mobileMenuOpen = false">Admin Portal</NuxtLink>
+          <NuxtLink to="/catalog" @click="mobileMenuOpen = false">{{ translateLanguage('nav.catalog') }}</NuxtLink>
+          <NuxtLink to="/packages" @click="mobileMenuOpen = false">{{ translateLanguage('nav.packages') }}</NuxtLink>
+          <NuxtLink to="/boutique" @click="mobileMenuOpen = false">{{ translateLanguage('nav.boutique') }}</NuxtLink>
+          <NuxtLink to="/about" @click="mobileMenuOpen = false">{{ translateLanguage('nav.about') }}</NuxtLink>
+          <NuxtLink to="/contact" @click="mobileMenuOpen = false">{{ translateLanguage('nav.contact') }}</NuxtLink>
+          <NuxtLink to="/login" @click="mobileMenuOpen = false">{{ translateLanguage('nav.admin_portal') }}</NuxtLink>
         </nav>
       </div>
     </header>
@@ -109,8 +109,8 @@ const { settings } = useSiteSettings();
           <!-- Brand -->
           <div class="footer-brand">
             <h3><span v-if="settings.store_name">{{ settings.store_name }}</span><span v-else>MAISON <span class="highlight">EL WALI</span></span></h3>
-            <p>Luxury Gold & Jewelry</p>
-            <p class="tagline">Timeless Elegance from Dubai</p>
+            <p>{{ translateLanguage('footer.luxury') }}</p>
+            <p class="tagline">{{ translateLanguage('footer.tagline') }}</p>
             <div class="social-links">
               <a v-if="settings.contact_email" :href="'mailto:' + settings.contact_email" title="Email">✉️</a>
               <a href="#" title="Instagram">📷</a>
@@ -120,42 +120,42 @@ const { settings } = useSiteSettings();
           
           <!-- Shop Links -->
           <div class="footer-section">
-            <h4>Collections</h4>
+            <h4>{{ translateLanguage('footer.collections') }}</h4>
             <ul>
-              <li><NuxtLink to="/catalog">All Jewelry</NuxtLink></li>
-              <li><NuxtLink to="/catalog">Gold Rings</NuxtLink></li>
-              <li><NuxtLink to="/catalog">Diamond Necklaces</NuxtLink></li>
-              <li><NuxtLink to="/catalog">Luxury Watches</NuxtLink></li>
-              <li><NuxtLink to="/catalog">Bridal Set</NuxtLink></li>
+              <li><NuxtLink to="/catalog">{{ translateLanguage('footer.all_jewelry') }}</NuxtLink></li>
+              <li><NuxtLink to="/catalog">{{ translateLanguage('footer.gold_rings') }}</NuxtLink></li>
+              <li><NuxtLink to="/catalog">{{ translateLanguage('footer.diamond_necklaces') }}</NuxtLink></li>
+              <li><NuxtLink to="/catalog">{{ translateLanguage('footer.luxury_watches') }}</NuxtLink></li>
+              <li><NuxtLink to="/catalog">{{ translateLanguage('footer.bridal_set') }}</NuxtLink></li>
             </ul>
           </div>
           
           <!-- Company Links -->
           <div class="footer-section">
-            <h4>The Maison</h4>
+            <h4>{{ translateLanguage('footer.maison') }}</h4>
             <ul>
-              <li><NuxtLink to="/boutique">Our Boutique</NuxtLink></li>
-              <li><NuxtLink to="/about">Heritage</NuxtLink></li>
-              <li><NuxtLink to="/contact">Careers</NuxtLink></li>
-              <li><NuxtLink to="/contact">Concierge</NuxtLink></li>
+              <li><NuxtLink to="/boutique">{{ translateLanguage('nav.boutique') }}</NuxtLink></li>
+              <li><NuxtLink to="/about">{{ translateLanguage('footer.heritage') }}</NuxtLink></li>
+              <li><NuxtLink to="/contact">{{ translateLanguage('footer.careers') }}</NuxtLink></li>
+              <li><NuxtLink to="/contact">{{ translateLanguage('nav.contact') }}</NuxtLink></li>
             </ul>
           </div>
           
           <!-- Support Links -->
           <div class="footer-section">
-            <h4>Client Care</h4>
+            <h4>{{ translateLanguage('footer.client_care') }}</h4>
             <ul>
-              <li><NuxtLink to="/contact">Book Appt.</NuxtLink></li>
-              <li><NuxtLink to="/about">Shipping & Returns</NuxtLink></li>
-              <li><NuxtLink to="/about">Size Guide</NuxtLink></li>
-              <li><NuxtLink to="/about">Jewelry Care</NuxtLink></li>
+              <li><NuxtLink to="/contact">{{ translateLanguage('footer.book_appt') }}</NuxtLink></li>
+              <li><NuxtLink to="/about">{{ translateLanguage('footer.shipping_returns') }}</NuxtLink></li>
+              <li><NuxtLink to="/about">{{ translateLanguage('footer.size_guide') }}</NuxtLink></li>
+              <li><NuxtLink to="/about">{{ translateLanguage('footer.jewelry_care') }}</NuxtLink></li>
             </ul>
           </div>
         </div>
         
         <div class="footer-bottom">
             <p class="address">{{ settings.contact_address }}</p>
-          <p class="copyright">© 2025 Maison El Wali. All Rights Reserved.</p>
+          <p class="copyright">© 2025 Maison El Wali. {{ translateLanguage('footer.rights') }}</p>
         </div>
       </div>
     </footer>
