@@ -52,7 +52,7 @@ const handleFileUpload = async (event: Event) => {
             const url = await api.uploadImage(target.files[0])
             form.image_url = url
         } catch (e) {
-            alert('Fialed to upload image')
+            alert('Failed to upload image')
         } finally {
             uploading.value = false
         }

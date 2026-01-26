@@ -28,6 +28,7 @@ const fetchCategories = async () => {
         }
         categories.value = data.value || []
     } catch (e) {
+        console.error(e)
         toast.error(translateLanguage('admin.failed_load'))
     }
 }
@@ -41,6 +42,7 @@ const handleSubmit = async () => {
         form.value.name = ''
         await fetchCategories()
     } catch (e: any) {
+        console.error(e)
         toast.error(e.response?._data?.detail || 'Failed to create category')
     } finally {
         isLoading.value = false
@@ -55,6 +57,7 @@ const deleteCategory = async (id: number) => {
         toast.success(translateLanguage('admin.delete_success'))
         await fetchCategories()
     } catch (e: any) {
+        console.error(e)
         toast.error(e.response?._data?.detail || translateLanguage('admin.failed_load'))
     }
 }

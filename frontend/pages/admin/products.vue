@@ -39,7 +39,7 @@ const fetchData = async () => {
         brands.value = b.data.value || []
     } catch (e) {
         error.value = e
-        // console.error('Fetch products failed:', e)
+        console.error('Fetch products failed:', e)
     } finally {
         loading.value = false
     }
@@ -102,7 +102,8 @@ const handleSubmitProduct = async (formData: any) => {
         showAddModal.value = false
         showEditModal.value = false
         await fetchData()
-        // console.error(e)
+    } catch (e: any) {
+        console.error(e)
         showError(translateLanguage('admin.save_failed'))
     } finally {
         loading.value = false

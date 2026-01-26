@@ -39,6 +39,7 @@ const fetchData = async () => {
         categories.value = c.data.value || []
         orders.value = o.data.value || []
     } catch (e: any) {
+        console.error('Dashboard fetch error:', e)
         error.value = e
     } finally {
         loading.value = false
