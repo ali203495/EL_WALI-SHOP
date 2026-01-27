@@ -83,6 +83,9 @@ const { settings } = useSiteSettings();
       
       <!-- Mobile Menu -->
       <div v-if="mobileMenuOpen" class="mobile-menu">
+        <div class="mobile-lang-switcher">
+           <LanguageSwitcher />
+        </div>
         <nav>
           <NuxtLink to="/catalog" @click="mobileMenuOpen = false">{{ translateLanguage('nav.catalog') }}</NuxtLink>
           <NuxtLink to="/packages" @click="mobileMenuOpen = false">{{ translateLanguage('nav.packages') }}</NuxtLink>
@@ -308,6 +311,12 @@ const { settings } = useSiteSettings();
     padding: 1rem;
     background: var(--surface);
     border-top: 1px solid var(--border);
+}
+
+.mobile-lang-switcher {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: flex-end;
 }
 
 .mobile-menu nav {
