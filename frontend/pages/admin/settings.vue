@@ -40,6 +40,7 @@ const settingsMap = reactive<Record<string, string>>({
     hero_badge: '',
     contact_email: '',
     contact_phone: '',
+    whatsapp_number: '',
     contact_address: '',
     theme_primary: '#10B981',
     theme_secondary: '#1F2937',
@@ -133,6 +134,10 @@ onMounted(() => {
                 <div class="form-group">
                     <label>{{ translateLanguage('admin.address') }}</label>
                     <input v-model="settingsMap.contact_address" type="text" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp Number (e.g. 971501234567)</label>
+                    <input v-model="settingsMap.whatsapp_number" type="text" class="input-field" placeholder="Enter number with country code">
                 </div>
             </div>
 

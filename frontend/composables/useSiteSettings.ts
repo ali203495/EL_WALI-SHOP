@@ -16,6 +16,7 @@ const defaultSettings = {
     contact_email: 'info@maisonelwali.com',
     contact_phone: '+971 4 123 4567',
     contact_address: '12 Royal Palm Avenue, Dubai, UAE',
+    whatsapp_number: '',
 
     // Home Hero
     hero_title: 'Timeless Elegance',
