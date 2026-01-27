@@ -83,6 +83,12 @@ onMounted(() => {
             
             <div v-if="step === 1">
                 <p class="subtitle">Enter your email to receive a recovery code.</p>
+                
+                <div class="alert-info">
+                    <span class="icon">ℹ️</span>
+                    <p><strong>Admin Note:</strong> Since email is not configured, please check the <strong>Server Logs</strong> (Render Dashboard) to find your verification code.</p>
+                </div>
+
                 <form @submit.prevent="handleRequestCode">
                     <div class="form-group">
                         <label>Email Address</label>
@@ -228,5 +234,31 @@ h2 {
 
 .back-link:hover {
     color: #4f46e5;
+}
+
+.alert-info {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.825rem;
+    align-items: flex-start;
+}
+
+.alert-info .icon {
+    font-size: 1.25rem;
+}
+
+.alert-info p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+.alert-info strong {
+    font-weight: 600;
 }
 </style>
